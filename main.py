@@ -1,5 +1,6 @@
 from solver import SimulationConfig, ThomasFermiSolver
 from datetime import datetime
+from pathlib import Path
 
 
 def main():
@@ -18,11 +19,22 @@ def main():
     solver = ThomasFermiSolver(cfg)
     solver.optimise()
 
-    # Save into analysis_folder/<timestamp>/ to avoid overwriting
+    # Prepare date-based folder under analysis_folder
+    base_dir = Path("analysis_folder")
+    today = datetime.now().strftime("%Y%m%d")
+    date_dir = base_dir / today
+    date_dir.mkdir(parents=True, exist_ok=True)
+
+    # Move existing timestamped runs for today into date_dir
+    for p in base_dir.iterdir():
+        if p.is_dir() and p.name.startswith(f"{today}_") and p.parent != date_dir:
+            p.rename(date_dir / p.name)
+
+    # Create new timestamped output directory under today's folder
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_dir = f"analysis_folder/{timestamp}"
-    solver.plot_results(save_dir=out_dir)
-    solver.save_results(out_dir)
+    out_dir = date_dir / timestamp
+    solver.plot_results(save_dir=str(out_dir))
+    solver.save_results(str(out_dir))
 
 
 if __name__ == "__main__":
