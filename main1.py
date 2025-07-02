@@ -1,20 +1,36 @@
 from solver import SimulationConfig, ThomasFermiSolver
 from datetime import datetime
 from pathlib import Path
+import numpy as np
 
+idx = 0 #index of the potential to simulate in 1-data/James.txt
 
 def main():
     # Create configuration (adjust filenames / parameters as needed)
+
+    # Extract spatial coordinates (nm) and potential columns
+    data = np.loadtxt("data/1-data/James.txt", comments="%")
+    x_nm = data[:, 0]
+    y_nm = data[:, 1]
+    # z_nm = data[:, 2]  # ignored for 2D simulation
+    V_columns = data[:, 3:]
+    V_vals = V_columns[:, idx]
+
     cfg = SimulationConfig(
         # External data files now live under data/
-        potential_file="data/0-data/VNS=2.1.txt",
-        exc_file="data/0-data/Exc_data_digitized.csv",
+        potential_data=(x_nm, y_nm, V_vals),
+
         niter=1,  # keep small for demo purposes
         lbfgs_maxiter=1000,
         lbfgs_maxfun=100000,
         Nx=128,
         Ny=128,
-    )
+        n_potentials=1, #number of potentials to simulate in 1-data/James.txt
+
+        exc_file="data/0-data/Exc_data_digitized.csv",
+
+
+        )
 
     solver = ThomasFermiSolver(cfg)
     solver.optimise()

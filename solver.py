@@ -31,8 +31,8 @@ class SimulationConfig:
 
     # External potential file (x [nm], y [nm], V [V])
     potential_file: str = "data/0-data/VNS=2.1.txt"
-    potential_scale: float = 0.7  # Scale factor applied to Φ
-    potential_offset: float = 0.15  # Constant offset added to Φ
+    potential_scale: float = 1.0  # Scale factor applied to Φ
+    potential_offset: float = 0.0  # Constant offset added to Φ
 
     # Exchange–correlation data (nu, Exc)
     exc_file: str = "data/0-data/Exc_data_digitized.csv"
@@ -43,8 +43,12 @@ class SimulationConfig:
     lbfgs_maxfun: int = 100000  # Maximum number of function evaluations for L-BFGS-B
 
     # Grid size (number of grid points in x and y directions)
-    Nx: int = 128
-    Ny: int = 128
+    Nx: int = 64
+    Ny: int = 64
+
+    # Potential data number
+    n_potentials: int = 0 #number of potentials to simulate
+
 
     # In-memory external potential data (x [nm], y [nm], V [V])
     potential_data: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
@@ -56,10 +60,10 @@ class ThomasFermiSolver:
     J_to_meV = 1.0 / (1.602e-22)  # Energy conversion factor (constant)
 
     def __init__(self, cfg: SimulationConfig):
-        self.cfg = cfg
-        self.Nx = cfg.Nx
-        self.Ny = cfg.Ny
-
+        self.cfg = cfg #cfg is a SimulationConfig object    
+        self.Nx = cfg.Nx #Nx is the number of grid points in the x direction
+        self.Ny = cfg.Ny #Ny is the number of grid points in the y direction
+        self.n_potentials = cfg.n_potentials #n_potentials is the number of potentials to simulate
         self._load_external_potential()
         self._prepare_grid()
         self._prepare_kernels()
