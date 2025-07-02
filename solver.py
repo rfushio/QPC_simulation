@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
-from typing import Tuple
+from typing import Tuple, Optional
 from pathlib import Path
 
 from scipy.fft import fft2, ifft2
@@ -46,6 +46,9 @@ class SimulationConfig:
     Nx: int = 128
     Ny: int = 128
 
+    # In-memory external potential data (x [nm], y [nm], V [V])
+    potential_data: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
+
 
 class ThomasFermiSolver:
     """Thomas–Fermi solver for 2D electron gas in magnetic field."""
@@ -67,13 +70,22 @@ class ThomasFermiSolver:
     # Pre-processing helpers
     # ---------------------------------------------------------------------
     def _load_external_potential(self):
-        """Load the external potential data from text file."""
-        data = np.loadtxt(self.cfg.potential_file, comments="%")
+        """Load the external potential data from text file or in-memory arrays."""
+        if self.cfg.potential_data is not None:
+            # Unpack provided arrays (assumed in nm units for x, y)
+            x_nm, y_nm, V_vals = self.cfg.potential_data
+            self.x_data = np.asarray(x_nm) * 1e-9  # nm → m
+            self.y_data = np.asarray(y_nm) * 1e-9  # nm → m
+            self.V_data = np.asarray(V_vals)
+            return
 
+        # Fallback to reading from file
+        data = np.loadtxt(self.cfg.potential_file, comments="%")
+        
         # Support both 3-column (x y V) and 4-column (x y z V)
         if data.shape[1] < 3:
             raise ValueError("Potential file must have ≥3 columns (x, y, V).")
-
+        
         self.x_data = data[:, 0] * 1e-9  # nm → m
         self.y_data = data[:, 1] * 1e-9  # nm → m
         self.V_data = data[:, -1]        # take last column as Φ
