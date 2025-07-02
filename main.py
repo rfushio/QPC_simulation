@@ -6,8 +6,8 @@ def main():
     # Create configuration (adjust filenames / parameters as needed)
     cfg = SimulationConfig(
         # External data files now live under data/
-        potential_file="data/VNS=2.1.txt",
-        exc_file="data/Exc_data_digitized.csv",
+        potential_file="data/0-data/VNS=2.1.txt",
+        exc_file="data/0-data/Exc_data_digitized.csv",
         niter=1,  # keep small for demo purposes
         lbfgs_maxiter=1000,
         lbfgs_maxfun=100000,

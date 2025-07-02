@@ -30,14 +30,12 @@ class SimulationConfig:
     margin: float = 0.0  # Extra margin around data bounds [m]
 
     # External potential file (x [nm], y [nm], V [V])
-    # moved to data/ directory
-    potential_file: str = "data/VNS=2.1.txt"
+    potential_file: str = "data/0-data/VNS=2.1.txt"
     potential_scale: float = 0.7  # Scale factor applied to Φ
     potential_offset: float = 0.15  # Constant offset added to Φ
 
     # Exchange–correlation data (nu, Exc)
-    # moved to data/ directory
-    exc_file: str = "data/Exc_data_digitized.csv"
+    exc_file: str = "data/0-data/Exc_data_digitized.csv"
 
     # Optimisation parameters
     niter: int = 5  # Basinhopping outer iterations
