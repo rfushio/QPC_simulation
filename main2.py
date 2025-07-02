@@ -33,14 +33,19 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
     today_dir = base_dir / datetime.now().strftime("%Y%m%d")
     today_dir.mkdir(parents=True, exist_ok=True)
 
+    # Create a single run folder inside today's directory to hold all potentials
+    run_ts = datetime.now().strftime("%H%M%S")
+    run_dir = today_dir / f"run_{run_ts}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
     for idx in range(n_pot):
         V_vals = V_columns[:, idx]
-
+        
         # Build simulation configuration using in-memory potential data
         cfg = SimulationConfig(
             potential_data=(x_nm, y_nm, V_vals),  # in nm units
             exc_file="data/0-data/Exc_data_digitized.csv",
-            niter=1,  # adjust as needed
+            niter=5,  # adjust as needed
             lbfgs_maxiter=1000,
             lbfgs_maxfun=100000,
             Nx=128,
@@ -50,9 +55,8 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
         solver = ThomasFermiSolver(cfg)
         solver.optimise()
 
-        # Output directory: analysis_folder/<YYYYMMDD>/<timestamp>_pot<idx>
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir = today_dir / f"{timestamp}_pot{idx}"
+        # Each potential gets its own sub-folder within the single run directory
+        out_dir = run_dir / f"pot{idx}"
         solver.plot_results(save_dir=str(out_dir))
         solver.save_results(str(out_dir))
 
