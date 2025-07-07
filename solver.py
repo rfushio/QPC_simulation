@@ -31,8 +31,13 @@ class SimulationConfig:
 
     # External potential file (x [nm], y [nm], V [V])
     potential_file: str = "data/0-data/VNS=2.1.txt"
+<<<<<<< HEAD
     potential_scale: float = 1.0  # Scale factor applied to Φ
     potential_offset: float = 0.0  # Constant offset added to Φ
+=======
+    potential_scale: float = 1  # Scale factor applied to Φ
+    potential_offset: float = 0  # Constant offset added to Φ
+>>>>>>> auto-simulation
 
     # Exchange–correlation data (nu, Exc)
     exc_file: str = "data/0-data/Exc_data_digitized.csv"
@@ -232,13 +237,17 @@ class ThomasFermiSolver:
     # ---------------------------------------------------------------------
     # Helper visualisation routines
     # ---------------------------------------------------------------------
-    def plot_results(self, save_dir: Path | str | None = None):
+    def plot_results(self, save_dir: Path | str | None = None, *, show: bool = False):
         """Visualise (and optionally save) results.
 
         Parameters
         ----------
         save_dir : Path | str | None
-            If given, figures are saved as PNG files in this directory.
+            Directory where figures are saved (PNG). If None, figures are not saved.
+        show : bool, default False
+            If True, display figures interactively via ``plt.show()`` (blocking).
+            If False (default), figures are closed after saving so that batch
+            scripts can proceed without manual intervention.
         """
         if not hasattr(self, "nu_smoothed"):
             raise RuntimeError("Run optimise() before plotting results.")
@@ -273,7 +282,12 @@ class ThomasFermiSolver:
         if save_dir_path is not None:
             fig2.savefig(save_dir_path / "phi.png", dpi=300)
 
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            # Close figures to prevent blocking in batch mode
+            plt.close(fig1)
+            plt.close(fig2)
 
     # ---------------------------------------------------------------------
     # Persistence helpers

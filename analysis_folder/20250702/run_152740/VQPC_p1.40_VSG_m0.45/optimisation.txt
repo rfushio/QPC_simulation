@@ -1,0 +1,21 @@
+                    message: ['requested number of basinhopping iterations completed successfully']
+                    success: False
+                        fun: -17395.510128209156
+                          x: [ 2.909e-01  2.721e-01 ...  2.689e-01
+                               2.866e-01]
+                        nit: 5
+      minimization_failures: 6
+                       nfev: 688170
+                       njev: 42
+ lowest_optimization_result:  message: STOP: TOTAL NO. OF F,G EVALUATIONS EXCEEDS LIMIT
+                              success: False
+                               status: 1
+                                  fun: -17395.510128209156
+                                    x: [ 2.909e-01  2.721e-01 ...
+                                         2.689e-01  2.866e-01]
+                                  nit: 5
+                                  jac: [ 2.685e-01  2.612e-01 ...
+                                         2.598e-01  2.630e-01]
+                                 nfev: 114695
+                                 njev: 7
+                             hess_inv: <16384x16384 LbfgsInvHessProduct with dtype=float64>
