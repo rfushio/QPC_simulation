@@ -10,7 +10,7 @@ import re
 #     desired_pairs = [(-0.40, -1.35), (-0.40, -1.20)]
 # ------------------------------------------------------------
 
-desired_pairs = [(3.80, -1.35)]  # <-- EDIT THIS LIST
+desired_pairs = [(0.80, -0.90)]  # <-- EDIT THIS LIST
 
 
 def parse_header(james_path: Path):
