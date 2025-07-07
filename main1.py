@@ -83,7 +83,7 @@ def main():
             Ny=128,
             n_potentials=len(idxs),
             potential_scale=1.0,
-            potential_offset=0.06,  
+            potential_offset=0.033,  
 
             exc_file="data/0-data/Exc_data_digitized.csv",
         )
