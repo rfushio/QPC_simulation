@@ -55,6 +55,35 @@ def load_density_line(npz_path: Path) -> Tuple[np.ndarray, np.ndarray]:
     return x_nm, line
 
 
+def make_dir_name(vqpc: float, vsg: float) -> str:
+    return f"VQPC_{vqpc:+.2f}_VSG_{vsg:+.2f}".replace("+", "p").replace("-", "m")
+
+
+def dir_for_idx(run_dir: Path, idx: int, mapping: Dict[int, Tuple[float, float]]) -> Path:
+    if idx in mapping:
+        name = make_dir_name(*mapping[idx])
+        candidate = run_dir / name
+        if candidate.exists():
+            return candidate
+    # fallback to potXXX
+    return run_dir / f"pot{idx}"
+
+
+def parse_header(james_path: Path) -> Dict[int, Tuple[float, float]]:
+    header_lines: List[str] = []
+    with james_path.open("r", encoding="utf-8", errors="ignore") as f:
+        for ln in f:
+            if not ln.lstrip().startswith("%"):
+                break
+            header_lines.append(ln.strip())
+    text = " ".join(header_lines)
+    pat = re.compile(r"@\s*(\d+):\s*VQPC=([+-]?\d*\.?\d+)\s*V,\s*VSG=([+-]?\d*\.?\d+)\s*V", re.I)
+    mp: Dict[int, Tuple[float, float]] = {}
+    for m in pat.finditer(text):
+        mp[int(m.group(1)) - 1] = (float(m.group(2)), float(m.group(3)))
+    return mp
+
+
 def plot_linecuts(
     run_dir: Path,
     james_path: Path,
@@ -62,6 +91,7 @@ def plot_linecuts(
     save_path: Path | None = None,
 ):
     labels = parse_potential_labels(james_path)
+    params_map = parse_header(james_path)
 
     if pot_indices is None:
         # infer all pot subfolders in run_dir
@@ -74,7 +104,7 @@ def plot_linecuts(
     plt.figure(figsize=(8, 6))
 
     for idx in pot_indices:
-        pot_dir = run_dir / f"pot{idx}"
+        pot_dir = dir_for_idx(run_dir, idx, params_map)
         npz_path = pot_dir / "results.npz"
         if not npz_path.exists():
             print(f"[WARN] missing {npz_path}, skipping.")

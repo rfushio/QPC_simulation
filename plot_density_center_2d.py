@@ -36,6 +36,16 @@ def center_density(npz_path: Path) -> float:
     iy = int(np.argmin(np.abs(y)))
     return float(nu[ix, iy])
 
+def make_dir_name(vqpc: float, vsg: float) -> str:
+    return f"VQPC_{vqpc:+.2f}_VSG_{vsg:+.2f}".replace("+", "p").replace("-", "m")
+
+def dir_for_idx(run_dir: Path, idx: int, mapping: Dict[int, Tuple[float, float]]) -> Path:
+    if idx in mapping:
+        cand = run_dir / make_dir_name(*mapping[idx])
+        if cand.exists():
+            return cand
+    return run_dir / f"pot{idx}"
+
 # -----------------------------------------------------------------------------
 # Main routine
 # -----------------------------------------------------------------------------
@@ -48,7 +58,8 @@ def plot_density_2d(run_dir: Path, james_path: Path, save_path: Path | None = No
     dens_vals: List[float] = []
 
     for idx, (vqpc, vsg) in idx_map.items():
-        npz_file = run_dir / f"pot{idx}" / "results.npz"
+        pot_dir = dir_for_idx(run_dir, idx, idx_map)
+        npz_file = pot_dir / "results.npz"
         if not npz_file.exists():
             continue
         dens = center_density(npz_file)

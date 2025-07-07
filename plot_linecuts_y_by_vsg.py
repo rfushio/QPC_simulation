@@ -30,6 +30,18 @@ def load_y_line(npz: Path) -> Tuple[np.ndarray, np.ndarray]:
     return y, nu[x_idx, :]
 
 
+def make_dir_name(vqpc: float, vsg: float) -> str:
+    return f"VQPC_{vqpc:+.2f}_VSG_{vsg:+.2f}".replace("+", "p").replace("-", "m")
+
+
+def dir_for_idx(run_dir: Path, idx: int, mapping: Dict[int, Tuple[float, float]]) -> Path:
+    if idx in mapping:
+        cand = run_dir / make_dir_name(*mapping[idx])
+        if cand.exists():
+            return cand
+    return run_dir / f"pot{idx}"
+
+
 def plot_y_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None):
     idx_map = parse_header(james_path)
     vsg_groups: Dict[float, List[Tuple[int, float]]] = {}
@@ -44,7 +56,8 @@ def plot_y_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None)
         lst.sort(key=lambda t: t[1])  # by VQPC
         plt.figure(figsize=(8, 6))
         for idx, vqpc in lst:
-            npz = run_dir / f"pot{idx}" / "results.npz"
+            pot_dir = dir_for_idx(run_dir, idx, idx_map)
+            npz = pot_dir / "results.npz"
             if not npz.exists():
                 continue
             y_nm, line = load_y_line(npz)

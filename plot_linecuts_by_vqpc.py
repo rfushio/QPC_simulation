@@ -45,6 +45,16 @@ def load_density_line(npz_path: Path) -> Tuple[np.ndarray, np.ndarray]:
 # Main routine
 # -----------------------------------------------------------------------------
 
+def make_dir_name(vqpc: float, vsg: float) -> str:
+    return f"VQPC_{vqpc:+.2f}_VSG_{vsg:+.2f}".replace("+", "p").replace("-", "m")
+
+def dir_for_idx(run_dir: Path, idx: int, mapping: Dict[int, Tuple[float, float]]) -> Path:
+    if idx in mapping:
+        cand = run_dir / make_dir_name(*mapping[idx])
+        if cand.exists():
+            return cand
+    return run_dir / f"pot{idx}"
+
 def plot_grouped_by_vqpc(run_dir: Path, james_path: Path, save_dir: Path | None = None):
     idx_to_params = parse_potential_header(james_path)
 
@@ -62,7 +72,7 @@ def plot_grouped_by_vqpc(run_dir: Path, james_path: Path, save_dir: Path | None 
         pairs.sort(key=lambda t: t[1])
         plt.figure(figsize=(8, 6))
         for idx, vsg in pairs:
-            pot_dir = run_dir / f"pot{idx}"
+            pot_dir = dir_for_idx(run_dir, idx, idx_to_params)
             npz_path = pot_dir / "results.npz"
             if not npz_path.exists():
                 print(f"[SKIP] {npz_path} not found")
