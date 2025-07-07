@@ -14,6 +14,7 @@ def main():
         lbfgs_maxfun=100000,
         Nx=128,
         Ny=128,
+        n_potentials=1,
     )
 
     solver = ThomasFermiSolver(cfg)

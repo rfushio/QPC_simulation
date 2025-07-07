@@ -75,12 +75,12 @@ def main():
 
         cfg = SimulationConfig(
             potential_data=(x_nm, y_nm, V_vals),
-
+            B=11.0,
             niter=1,
             lbfgs_maxiter=1000,
             lbfgs_maxfun=100000,
-            Nx=128,
-            Ny=128,
+            Nx=64,
+            Ny=64,
             n_potentials=len(idxs),
             potential_scale=1.0,
             potential_offset=0.033,  
