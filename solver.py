@@ -31,13 +31,8 @@ class SimulationConfig:
 
     # External potential file (x [nm], y [nm], V [V])
     potential_file: str = "data/0-data/VNS=2.1.txt"
-<<<<<<< HEAD
     potential_scale: float = 1.0  # Scale factor applied to Φ
     potential_offset: float = 0.0  # Constant offset added to Φ
-=======
-    potential_scale: float = 1  # Scale factor applied to Φ
-    potential_offset: float = 0  # Constant offset added to Φ
->>>>>>> auto-simulation
 
     # Exchange–correlation data (nu, Exc)
     exc_file: str = "data/0-data/Exc_data_digitized.csv"
@@ -116,7 +111,7 @@ class ThomasFermiSolver:
         # Real-space grid
         self.x = np.linspace(x_min, x_max, self.Nx)
         self.y = np.linspace(y_min, y_max, self.Ny)
-        self.X, self.Y = np.meshgrid(self.x, self.y, indexing="xy")
+        self.X, self.Y = np.meshgrid(self.x, self.y, indexing="ij")
 
         # Interpolate Φ onto the grid
         Phi_grid = griddata(
@@ -150,7 +145,7 @@ class ThomasFermiSolver:
 
         kx = 2 * np.pi * np.fft.fftfreq(self.Nx, d=self.dx)
         ky = 2 * np.pi * np.fft.fftfreq(self.Ny, d=self.dy)
-        KX, KY = np.meshgrid(kx, ky, indexing="xy")
+        KX, KY = np.meshgrid(kx, ky, indexing="ij") #KX and KY are the wave vectors in the x and y directions
         q = np.sqrt(KX ** 2 + KY ** 2)
         q[0, 0] = 1e-20  # avoid division by zero
 
@@ -237,7 +232,13 @@ class ThomasFermiSolver:
     # ---------------------------------------------------------------------
     # Helper visualisation routines
     # ---------------------------------------------------------------------
-    def plot_results(self, save_dir: Path | str | None = None, *, show: bool = False):
+    def plot_results(
+        self,
+        save_dir: Path | str | None = None,
+        *,
+        show: bool = False,
+        title_extra: str = "",
+    ):
         """Visualise (and optionally save) results.
 
         Parameters
@@ -262,8 +263,11 @@ class ThomasFermiSolver:
 
         # ν(r)
         fig1 = plt.figure(figsize=(6, 5))
-        plt.imshow(self.nu_smoothed, extent=extent, origin="lower", cmap="inferno")
-        plt.title("Optimised Filling Factor ν(r)")
+        plt.imshow(self.nu_smoothed.T, extent=extent, origin="lower", cmap="inferno", aspect="auto", vmin=0.0, vmax=1.0)
+        base_title = "Optimised Filling Factor ν(r)"
+        if title_extra:
+            base_title += f"\n{title_extra}"
+        plt.title(base_title)
         plt.xlabel("x [nm]")
         plt.ylabel("y [nm]")
         plt.colorbar(label="ν")
@@ -273,8 +277,11 @@ class ThomasFermiSolver:
 
         # Φ(r)
         fig2 = plt.figure(figsize=(6, 5))
-        plt.imshow(self.Phi, extent=extent, origin="lower", cmap="viridis")
-        plt.title("External Potential Φ(r) [V]")
+        plt.imshow(self.Phi.T, extent=extent, origin="lower", cmap="viridis", aspect="auto")
+        base_title2 = "External Potential Φ(r) [V]"
+        if title_extra:
+            base_title2 += f"\n{title_extra}"
+        plt.title(base_title2)
         plt.xlabel("x [nm]")
         plt.ylabel("y [nm]")
         plt.colorbar(label="Φ [V]")
@@ -320,5 +327,20 @@ class ThomasFermiSolver:
         # Save optimisation summary
         with open(out_path / "optimisation.txt", "w", encoding="utf-8") as f:
             f.write(str(self.optimisation_result))
+
+        # NEW: Save full simulation configuration --------------------------------
+        try:
+            from dataclasses import asdict
+
+            cfg_dict = asdict(self.cfg)
+        except Exception:
+            # Fallback – dataclasses.asdict might fail if nested objects present
+            cfg_dict = {k: getattr(self.cfg, k) for k in dir(self.cfg) if not k.startswith("__") and not callable(getattr(self.cfg, k))}
+
+        with open(out_path / "simulation_parameters.txt", "w", encoding="utf-8") as f:
+            for key, val in cfg_dict.items():
+                f.write(f"{key} = {val}\n")
+
+        # ------------------------------------------------------------------------
 
         print(f"Results saved to {out_path.resolve()}") 

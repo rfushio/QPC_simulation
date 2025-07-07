@@ -28,9 +28,9 @@ def parse_header(james_path: Path) -> Dict[int, Tuple[float, float]]:
 def load_line(npz_path: Path) -> Tuple[np.ndarray, np.ndarray]:
     data = np.load(npz_path)
     x = data["x"] * 1e9  # nm
-    y = data["y"]
-    nu = data["nu_smoothed"]
-    y_idx = int(np.argmin(np.abs(y)))
+    y = data["y"] # y-axis
+    nu = data["nu_smoothed"] # density
+    y_idx = int(np.argmin(np.abs(y))) # find the index of the minimum y value
     return x, nu[:, y_idx]
 
 
