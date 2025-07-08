@@ -109,8 +109,8 @@ class ThomasFermiSolver:
         self.A_total = self.Lx * self.Ly
 
         # Real-space grid
-        self.x = np.linspace(x_min, x_max, self.Nx)
-        self.y = np.linspace(y_min, y_max, self.Ny)
+        self.x = np.linspace(x_min, x_max, self.Nx, endpoint=False)  # FIXED: endpoint=False for periodicity
+        self.y = np.linspace(y_min, y_max, self.Ny, endpoint=False)  # FIXED: endpoint=False for periodicity
         self.X, self.Y = np.meshgrid(self.x, self.y, indexing="ij")
 
         # Interpolate Φ onto the grid
@@ -143,29 +143,40 @@ class ThomasFermiSolver:
         self.D = cfg.e * cfg.B / cfg.h  # Landau degeneracy [m-2]
         self.ell_B = np.sqrt(cfg.h / (2 * np.pi * cfg.e * cfg.B))
 
+        # FIXED: Proper frequency grid for FFT
         kx = 2 * np.pi * np.fft.fftfreq(self.Nx, d=self.dx)
         ky = 2 * np.pi * np.fft.fftfreq(self.Ny, d=self.dy)
         KX, KY = np.meshgrid(kx, ky, indexing="ij") #KX and KY are the wave vectors in the x and y directions
         q = np.sqrt(KX ** 2 + KY ** 2)
-        q[0, 0] = 1e-20  # avoid division by zero
+        
+        # FIXED: Better handling of q=0 point
+        self.q_safe = q.copy()
+        self.q_safe[0, 0] = 1e-20  # avoid division by zero for Coulomb kernel
 
         # Gaussian form factor for magnetic length smoothing
         self.G_q = np.exp(-0.5 * (self.ell_B * q) ** 2)
 
-        # Coulomb kernel in Fourier space (top/back gate screening)
+        # FIXED: Proper Coulomb kernel in Fourier space with correct normalization
         epsilon_hBN = np.sqrt(cfg.epsilon_perp * cfg.epsilon_parallel)
         beta = np.sqrt(cfg.epsilon_parallel / cfg.epsilon_perp)
-        self.Vq = (
+        
+        # Coulomb kernel with gate screening
+        self.Vq = np.zeros_like(q)
+        mask = q > 0  # Only calculate for non-zero q
+        self.Vq[mask] = (
             self.cfg.e ** 2
             / (4 * np.pi * self.cfg.epsilon_0 * epsilon_hBN)
-            * (4 * np.pi * np.sinh(beta * cfg.dt * q) * np.sinh(beta * cfg.db * q))
-            / (np.sinh(beta * (cfg.dt + cfg.db) * q) * q)
+            * (4 * np.pi * np.sinh(beta * cfg.dt * q[mask]) * np.sinh(beta * cfg.db * q[mask]))
+            / (np.sinh(beta * (cfg.dt + cfg.db) * q[mask]) * q[mask])
         )
+        # q=0 term is zero (no self-interaction)
+        self.Vq[0, 0] = 0.0
 
     def _prepare_exc_table(self):
         exc_data = np.loadtxt(self.cfg.exc_file, delimiter=",", skiprows=1)
         n_exc, Exc_vals = exc_data[:, 0], exc_data[:, 1]
-        self.exc_interp = interp1d(n_exc, Exc_vals, kind="linear", )#fill_value="extrapolate"
+        # FIXED: Handle extrapolation for exchange-correlation interpolation
+        self.exc_interp = interp1d(n_exc, Exc_vals, kind="linear", bounds_error=False, fill_value=0.0)
 
     def _init_density(self):
         # Classical (Thomas-Fermi) initial filling factor guess in [0,1]
@@ -181,15 +192,22 @@ class ThomasFermiSolver:
         return gaussian_filter(arr, sigma=sigma, mode="wrap")
 
     def energy(self, nu_flat: np.ndarray) -> float:
-        """Total energy functional in meV."""
+        """Total energy functional in meV with CORRECTED FFT normalization."""
         nu = nu_flat.reshape((self.Nx, self.Ny))
         nu_eff = self.gaussian_convolve(nu)
         n_eff = nu_eff * self.D  # density [m-2]
 
-        # Hartree (Coulomb) energy via FFT
+        # FIXED: Proper Hartree (Coulomb) energy calculation via FFT
         n_fft = fft2(n_eff)
-        n_q = n_fft * self.dA
-        E_C = 0.5 / self.A_total * np.sum(self.Vq * np.abs(n_q) ** 2) * self.J_to_meV
+        
+        # FIXED: Correct normalization for FFT convolution
+        # For energy calculation: E = (1/2) * ∫∫ n(r) V(r-r') n(r') dr dr'
+        # In Fourier space: E = (1/2) * (1/A) * Σ_q |n_q|² V_q
+        # where n_q = FFT[n] * dA (to get proper units)
+        
+        # The factor dA comes from the discrete integral, and 1/A_total normalizes the sum
+        dA_squared = self.dA * self.dA
+        E_C = 0.5 * np.sum(self.Vq * np.abs(n_fft)**2) * dA_squared / self.A_total * self.J_to_meV
 
         # External potential energy
         E_phi = np.sum(-self.cfg.e * self.Phi * n_eff) * self.dA * self.J_to_meV

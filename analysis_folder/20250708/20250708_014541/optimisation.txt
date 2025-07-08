@@ -1,0 +1,21 @@
+                    message: ['requested number of basinhopping iterations completed successfully']
+                    success: True
+                        fun: -380424.1604852558
+                          x: [ 1.000e+00  1.000e+00 ...  1.000e+00
+                               1.000e+00]
+                        nit: 1
+      minimization_failures: 1
+                       nfev: 180235
+                       njev: 11
+ lowest_optimization_result:  message: CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH
+                              success: True
+                               status: 0
+                                  fun: -380424.1604852558
+                                    x: [ 1.000e+00  1.000e+00 ...
+                                         1.000e+00  1.000e+00]
+                                  nit: 2
+                                  jac: [-3.463e+00 -2.311e+00 ...
+                                        -1.269e+00 -3.737e+00]
+                                 nfev: 65540
+                                 njev: 4
+                             hess_inv: <16384x16384 LbfgsInvHessProduct with dtype=float64>

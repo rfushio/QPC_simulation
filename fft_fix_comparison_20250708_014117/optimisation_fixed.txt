@@ -1,0 +1,22 @@
+=== FIXED FFT VERSION ===
+                    message: ['requested number of basinhopping iterations completed successfully']
+                    success: True
+                        fun: -380632.16937146307
+                          x: [ 9.464e-01  0.000e+00 ...  0.000e+00
+                               8.980e-01]
+                        nit: 1
+      minimization_failures: 0
+                       nfev: 6425
+                       njev: 25
+ lowest_optimization_result:  message: CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH
+                              success: True
+                               status: 0
+                                  fun: -380632.16937146307
+                                    x: [ 9.464e-01  0.000e+00 ...
+                                         0.000e+00  8.980e-01]
+                                  nit: 9
+                                  jac: [ 2.264e+00  1.364e+03 ...
+                                         1.297e+03 -5.025e+01]
+                                 nfev: 3598
+                                 njev: 14
+                             hess_inv: <256x256 LbfgsInvHessProduct with dtype=float64>

@@ -1,0 +1,7 @@
+FFT検証結果 - グリッドサイズ 32x32
+==================================================
+frequency_grid: PASS
+parseval: FAIL
+convolution: FAIL
+coulomb_energy: PASS
+convergence: FAIL
