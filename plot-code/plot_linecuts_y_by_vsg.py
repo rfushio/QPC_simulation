@@ -55,13 +55,22 @@ def plot_y_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None)
     for vsg, lst in sorted(vsg_groups.items()):
         lst.sort(key=lambda t: t[1])  # by VQPC
         plt.figure(figsize=(8, 6))
+        plotted = False
         for idx, vqpc in lst:
             pot_dir = dir_for_idx(run_dir, idx, idx_map)
             npz = pot_dir / "results.npz"
             if not npz.exists():
+                print(f"[SKIP] {npz} not found")
                 continue
             y_nm, line = load_y_line(npz)
             plt.plot(y_nm, line, label=f"V_QPC={vqpc} V")
+            plotted = True
+
+        if not plotted:
+            plt.close()
+            print(f"No data for V_SG={vsg} – skipping empty plot")
+            continue
+
         plt.xlabel("y [nm]")
         plt.ylabel("ν (density)")
         plt.title(f"Y-line cuts at V_SG={vsg} V (varying V_QPC)")
@@ -74,6 +83,6 @@ def plot_y_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None)
 
 
 if __name__ == "__main__":
-    run_dir = Path("analysis_folder/20250702/run_152740")
-    james_txt = Path("data/1-data/James.txt")
+    run_dir = Path("analysis_folder/20250708/20250708_113409")
+    james_txt = Path("data/1-data/Symmetry.txt")
     plot_y_by_vsg(run_dir, james_txt) 

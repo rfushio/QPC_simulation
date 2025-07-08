@@ -63,13 +63,22 @@ def plot_y_by_vqpc(run_dir: Path, james_path: Path, save_dir: Path | None = None
     for vqpc, pairs in sorted(vqpc_map.items()):
         pairs.sort(key=lambda t: t[1])  # sort by VSG
         plt.figure(figsize=(8, 6))
+        plotted = False
         for idx, vsg in pairs:
             pot_dir = dir_for_idx(run_dir, idx, idx_map)
             npz_path = pot_dir / "results.npz"
             if not npz_path.exists():
+                print(f"[SKIP] {npz_path} not found")
                 continue
             y_nm, line = load_y_line(npz_path)
             plt.plot(y_nm, line, label=f"V_SG={vsg} V")
+            plotted = True
+
+        if not plotted:
+            plt.close()
+            print(f"No data for V_QPC={vqpc} – skipping empty plot")
+            continue
+
         plt.xlabel("y [nm]")
         plt.ylabel("ν (density)")
         plt.title(f"Y-line cuts at V_QPC={vqpc} V (varying V_SG)")

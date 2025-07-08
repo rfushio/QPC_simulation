@@ -1,8 +1,9 @@
 import numpy as np
 from datetime import datetime
 from pathlib import Path
-from solver import SimulationConfig, ThomasFermiSolver
+from solver1 import SimulationConfig, ThomasFermiSolver
 import re
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials: int | None = None):
@@ -66,26 +67,79 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
     run_dir = today_dir / f"run_{run_ts}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    for idx in range(n_pot):
-        V_vals = V_columns[:, idx]
-        
-        # Build simulation configuration using in-memory potential data
+    # ------------------------------------------------------------------
+    # Helper function to run one simulation (must be top-level so it can
+    # be pickled by multiprocessing).
+    # ------------------------------------------------------------------
+
+    def _run_single_simulation(idx: int,
+                               x_nm: np.ndarray,
+                               y_nm: np.ndarray,
+                               V_vals: np.ndarray,
+                               out_dir_str: str,
+                               title_extra: str) -> int:
+        """Run one Thomas-Fermi simulation and save results.
+
+        Returns the idx so the parent can report progress.
+        """
+
         cfg = SimulationConfig(
-            potential_data=(x_nm, y_nm, V_vals),  # in nm units
+            potential_data=(x_nm, y_nm, V_vals),
             exc_file="data/0-data/Exc_data_digitized.csv",
-            niter=1,  # adjust as needed
+            niter=1,
             lbfgs_maxiter=1000,
             lbfgs_maxfun=200000,
             Nx=128,
             Ny=128,
             potential_scale=1.0,
-            potential_offset=0.033,  
+            potential_offset=0.033,
         )
 
         solver = ThomasFermiSolver(cfg)
-        solver.optimise()
 
-        # Determine output directory name and title with gate voltages, if available
+        out_dir = Path(out_dir_str)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write simulation parameters BEFORE running simulation
+        from dataclasses import asdict
+        with (out_dir / "simulation_parameters.txt").open("w", encoding="utf-8") as f:
+            for k, v in asdict(cfg).items():
+                f.write(f"{k} = {v}\n")
+
+        # Run simulation and time it
+        import time
+        t0 = time.time()
+        solver.optimise()
+        exec_sec = time.time() - t0
+
+        # Plot results and manually save outputs (avoid overwriting parameters)
+        solver.plot_results(save_dir=str(out_dir), title_extra=title_extra)
+
+        np.savez_compressed(
+            out_dir / "results.npz",
+            nu_opt=solver.nu_opt,
+            nu_smoothed=solver.nu_smoothed,
+            Phi=solver.Phi,
+            x=solver.x,
+            y=solver.y,
+        )
+
+        with (out_dir / "optimisation.txt").open("w", encoding="utf-8") as f:
+            f.write(str(solver.optimisation_result))
+
+        with (out_dir / "execution_time.txt").open("w", encoding="utf-8") as f:
+            f.write(f"execution_time_seconds = {exec_sec:.6f}\n")
+            f.write(f"execution_time_minutes = {exec_sec/60:.6f}\n")
+
+        return idx
+
+    # ---------------- Parallel execution ----------------
+    tasks: list[tuple[int, np.ndarray, np.ndarray, np.ndarray, str, str]] = []
+
+    for idx in range(n_pot):
+        V_vals = V_columns[:, idx]
+
+        # Determine directory name / title for this potential
         if idx in idx_to_vs:
             vqpc, vsg = idx_to_vs[idx]
             dir_name = make_dir_name(vqpc, vsg)
@@ -95,11 +149,18 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
             title_extra = f"Potential idx {idx}"
 
         out_dir = run_dir / dir_name
-        # Plot and save with descriptive title
-        solver.plot_results(save_dir=str(out_dir), title_extra=title_extra)
-        solver.save_results(str(out_dir))
+        tasks.append((idx, x_nm, y_nm, V_vals, str(out_dir), title_extra))
 
-        print(f"Finished potential #{idx+1}/{n_pot}. Results saved in {out_dir}.")
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(_run_single_simulation, *t) for t in tasks]
+        for fut in as_completed(futures):
+            try:
+                finished_idx = fut.result()
+                print(f"Finished potential {finished_idx+1}/{n_pot}.")
+            except Exception as e:
+                print(f"Simulation failed: {e}")
+
+    print(f"All {n_pot} simulations complete. Results stored in {run_dir}.")
 
 
 if __name__ == "__main__":
