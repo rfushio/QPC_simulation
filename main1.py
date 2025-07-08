@@ -11,7 +11,7 @@ import re
 #     desired_pairs = [(-0.40, -1.35), (-0.40, -1.20)]
 # ------------------------------------------------------------
 
-desired_pairs = [(-4.00, -1.50)]  # <-- EDIT THIS LIST
+desired_pairs = [(-4.00, -1.50),(-3.70, -1.50),(-3.40, -1.50),(-3.10, -1.50),(-2.80, -1.50),(-2.50, -1.50),(-2.20, -1.50),(-1.90, -1.50),(-1.60, -1.50),(-1.30, -1.50),(-1.00, -1.50),(-0.70, -1.50),(-0.40, -1.50),(-0.10, -1.50),(0.20, -1.50),(0.50, -1.50),(0.80, -1.50),(1.10, -1.50),(1.40, -1.50),(1.70, -1.50),(2.00, -1.50),(2.30, -1.50),(2.60, -1.50),(2.90, -1.50),(3.20, -1.50),(3.50, -1.50),(3.80, -1.50)]  # <-- EDIT THIS LIST
 
 
 def parse_header(james_path: Path):
@@ -33,14 +33,14 @@ def main():
     # Create configuration (adjust filenames / parameters as needed)
 
     # Extract spatial coordinates (nm) and potential columns
-    data = np.loadtxt("data/1-data/James.txt", comments="%")
+    data = np.loadtxt("data/1-data/Symmetry.txt", comments="%")
     x_nm = data[:, 0]
     y_nm = data[:, 1]
     # z_nm = data[:, 2]  # ignored for 2D simulation
     V_columns = data[:, 3:]
 
     # Map requested (V_QPC, V_SG) pairs to column indices ------------------
-    james_path = Path("data/1-data/James.txt")
+    james_path = Path("data/1-data/Symmetry.txt")
     idx_to_vs = parse_header(james_path)
 
     # tolerance for float comparison (absolutes in volts)

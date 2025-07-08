@@ -171,7 +171,7 @@ class ThomasFermiSolver:
     def _prepare_exc_table(self):
         exc_data = np.loadtxt(self.cfg.exc_file, delimiter=",", skiprows=1)
         n_exc, Exc_vals = exc_data[:, 0], exc_data[:, 1]
-        self.exc_interp = interp1d(n_exc, Exc_vals, kind="linear", )#fill_value="extrapolate"
+        self.exc_interp = interp1d(n_exc, Exc_vals, kind="linear", bounds_error=False, fill_value="extrapolate")
 
     def _init_density(self):
         # Classical (Thomas-Fermi) initial filling factor guess in [0,1]
