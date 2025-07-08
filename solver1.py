@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 from typing import Tuple, Optional
 from pathlib import Path
+import time
 
 from scipy.fft import fft2, ifft2
 from scipy.optimize import basinhopping
@@ -205,6 +206,8 @@ class ThomasFermiSolver:
     # ---------------------------------------------------------------------
     def optimise(self):
         """Run global optimisation to find the ground-state filling factor."""
+        start_time = time.time()
+        
         bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
         result = basinhopping(
             self.energy,
@@ -224,9 +227,15 @@ class ThomasFermiSolver:
             disp=True,
         )
 
+        end_time = time.time()
+        self.execution_time = end_time - start_time
+
         self.nu_opt = result.x.reshape((self.Nx, self.Ny))
         self.nu_smoothed = self.gaussian_convolve(self.nu_opt)
         self.optimisation_result = result
+        
+        print(f"Optimization completed in {self.execution_time:.2f} seconds ({self.execution_time/60:.2f} minutes)")
+        
         return result
 
     # ---------------------------------------------------------------------
@@ -340,6 +349,12 @@ class ThomasFermiSolver:
         with open(out_path / "simulation_parameters.txt", "w", encoding="utf-8") as f:
             for key, val in cfg_dict.items():
                 f.write(f"{key} = {val}\n")
+            
+            # Add execution time
+            if hasattr(self, 'execution_time'):
+                f.write(f"\n# Execution time\n")
+                f.write(f"execution_time_seconds = {self.execution_time:.6f}\n")
+                f.write(f"execution_time_minutes = {self.execution_time/60:.6f}\n")
 
         # ------------------------------------------------------------------------
 

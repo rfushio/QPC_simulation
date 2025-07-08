@@ -1,4 +1,5 @@
-from solver import SimulationConfig, ThomasFermiSolver
+# Using solver2 implementation (FFT-based Gaussian convolution)
+from solver2 import SimulationConfig, ThomasFermiSolver
 from datetime import datetime
 from pathlib import Path
 import numpy as np
@@ -10,7 +11,7 @@ import re
 #     desired_pairs = [(-0.40, -1.35), (-0.40, -1.20)]
 # ------------------------------------------------------------
 
-desired_pairs = [(0.80, -0.90)]  # <-- EDIT THIS LIST
+desired_pairs = [(-4.00, -1.50)]  # <-- EDIT THIS LIST
 
 
 def parse_header(james_path: Path):
@@ -75,15 +76,16 @@ def main():
 
         cfg = SimulationConfig(
             potential_data=(x_nm, y_nm, V_vals),
-            B=11.0,
+            B=13.0,
             niter=1,
             lbfgs_maxiter=1000,
-            lbfgs_maxfun=100000,
-            Nx=64,
-            Ny=64,
+            lbfgs_maxfun=1000000,
+            Nx=128,
+            Ny=128,
             n_potentials=len(idxs),
             potential_scale=1.0,
             potential_offset=0.033,  
+            solver_type="solver2",  # Explicitly specify which solver is being used
 
             exc_file="data/0-data/Exc_data_digitized.csv",
         )
