@@ -11,7 +11,7 @@ potential_file = data/0-data/VNS=2.1.txt
 potential_scale = 1.0
 potential_offset = 0.033
 exc_file = data/0-data/Exc_data_digitized.csv
-niter = 1
+niter = 3
 lbfgs_maxiter = 1000
 lbfgs_maxfun = 200000
 Nx = 64
@@ -286,9 +286,9 @@ solver_type = solver3
 N = 64
 
 # Execution time
-execution_time_seconds = 119.430343
-execution_time_minutes = 1.990506
+execution_time_seconds = 188.243488
+execution_time_minutes = 3.137391
 
 # Execution time
-execution_time_seconds = 119.430414
-execution_time_minutes = 1.990507
+execution_time_seconds = 188.243547
+execution_time_minutes = 3.137392

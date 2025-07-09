@@ -1,3 +1,5 @@
+### Matryoshka solver that uses smaller grids for each stage as an initial guess based on solver2.py ###
+
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path

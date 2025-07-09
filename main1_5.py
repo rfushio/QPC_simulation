@@ -1,3 +1,5 @@
+### Works for solver3.py ###
+
 import numpy as np
 from datetime import datetime
 from pathlib import Path
@@ -16,10 +18,10 @@ from solver3 import SimulationConfig, ThomasFermiSolver
 DESIRED_PAIRS: list[tuple[float, float]] = [(0.20, -1.50)]
 
 # Square grid size N (replaces Nx, Ny)
-GRID_N: int = 64
+GRID_N: int = 128
 
 # Optimiser parameters
-BASINHOPPING_NITER: int = 1
+BASINHOPPING_NITER: int = 3
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 200000
 
