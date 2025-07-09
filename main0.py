@@ -1,4 +1,4 @@
-from solver import SimulationConfig, ThomasFermiSolver
+from solver1 import SimulationConfig, ThomasFermiSolver
 from datetime import datetime
 from pathlib import Path
 
