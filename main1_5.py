@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 import time
 
-from solver3 import SimulationConfig, ThomasFermiSolver
+from solver3_movie import SimulationConfig, ThomasFermiSolver
 
 # -----------------------------------------------------------------------------
 # USER-CONFIGURABLE PARAMETERS
@@ -18,10 +18,10 @@ from solver3 import SimulationConfig, ThomasFermiSolver
 DESIRED_PAIRS: list[tuple[float, float]] = [(0.20, -1.50)]
 
 # Square grid size N (replaces Nx, Ny)
-GRID_N: int = 128
+GRID_N: int = 32
 
 # Optimiser parameters
-BASINHOPPING_NITER: int = 3
+BASINHOPPING_NITER: int = 10
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 200000
 
