@@ -10,7 +10,7 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
 # Re-use the full solver2 implementation for all low-level routines
-from solver2 import SimulationConfig as _BaseConfig, ThomasFermiSolver as _BaseSolver
+from solvers.solver2 import SimulationConfig as _BaseConfig, ThomasFermiSolver as _BaseSolver
 
 
 # -----------------------------------------------------------------------------
@@ -30,9 +30,13 @@ class SimulationConfig(_BaseConfig):
     # Square grid size (replaces Nx & Ny)
     N: int = 64
 
+    # ---------------- NEW PARAMETERS ----------------
     # Maximum number of accepted minima before early-exit on coarse stages (<N).
     # If <=0 the optimiser will run full ``cfg.niter`` iterations.
-    coarse_accept_limit: int = 1
+    coarse_accept_limit: int = 3
+
+    # Frames-per-second for the generated ν-evolution movie
+    movie_fps: int = 5
 
     # The parent dataclass already defines Nx, Ny.  We set default ``None`` so
     # that they do not appear twice in the generated ``__init__`` signature and
@@ -76,8 +80,7 @@ class ThomasFermiSolver(_BaseSolver):
 
         print(f"[solver3] Progressive optimisation up to N={target_N}")
 
-        # Build resolution ladder; even for small grids just use [target_N]
-        # so that custom logging and callback logic always apply.
+        # Build resolution ladder; even for small grids, keep our custom loop
         if target_N <= 32:
             resolutions: List[int] = [target_N]
         else:
@@ -104,11 +107,16 @@ class ThomasFermiSolver(_BaseSolver):
         prev_nu: Optional[np.ndarray] = None  # type: ignore[assignment]
         prev_N: Optional[int] = None
 
+        self.nu_frames: list[np.ndarray] = []  # Will hold frames for FINAL stage only
+
         for res in resolutions:
             stage_cfg = replace(self.cfg, N=res)  # type: ignore[arg-type]
             stage_solver = ThomasFermiSolver(stage_cfg)
 
             print(f"[solver3] >>> Starting stage with N={res}")
+
+            # Initialise frame list for this stage (used only if final)
+            stage_solver.nu_frames = []  # type: ignore[attr-defined]
 
             # --------------------------------------------------------------
             # Prepare initial density guess
@@ -118,6 +126,10 @@ class ThomasFermiSolver(_BaseSolver):
                 stage_solver.nu0 = self._resample_nu(prev_nu, prev_N, res).flatten()
             # else: keep classical TF guess (already set in __init__)
 
+            # Store initial frame (smoothed) *before* optimisation starts
+            initial_frame = stage_solver.gaussian_convolve(stage_solver.nu0.reshape((res, res)))
+            stage_solver.nu_frames.append(initial_frame)  # type: ignore[attr-defined]
+
             # Energy before optimisation (initial guess)
             E_initial = stage_solver.energy(stage_solver.nu0.copy())
             print(f"[solver3] N={res}: initial energy = {E_initial:.6e} meV")
@@ -126,9 +138,9 @@ class ThomasFermiSolver(_BaseSolver):
             # Run optimisation – stop right after first accepted minimum
             # --------------------------------------------------------------
             _accepted_x: list[np.ndarray] = []
-            accepted_count = 0  # track accepted minima count in this stage
-            iter_idx = 0        # track iteration number
-            best_E = E_initial  # best energy seen so far
+            accepted_count = 0  # NEW: track number of accepted minima in this stage
+            iter_idx = 0        # iteration counter within this stage
+            best_E = E_initial  # best energy so far in this stage
 
             class _EarlyStop(Exception):
                 """Internal signal to stop basinhopping early for coarse grids."""
@@ -139,23 +151,25 @@ class ThomasFermiSolver(_BaseSolver):
 
                 status = "accepted" if accept else "rejected"
                 print(f"[solver3] N={res} iter={iter_idx}: {status} E={f:.6e} meV")
-
                 if accept:
                     accepted_count += 1
                     _accepted_x.append(x.copy())
-                    # Record energy history in the stage solver
+                    # Record energy history
                     stage_solver.energy_history.append(float(f))
 
-                    # Check for new global minimum
+                    # Record frame (smoothed ν)
+                    nu_current = stage_solver.gaussian_convolve(x.reshape((res, res)))
+                    stage_solver.nu_frames.append(nu_current)  # type: ignore[attr-defined]
+
+                    # Print new global minimum info
                     if f < best_E - 1e-12:
                         print(
                             f"[solver3] N={res} iter={iter_idx}: NEW global minimum ΔE = {best_E - f:.6e}"
                         )
                         best_E = float(f)
 
-                    # Early-stop logic
+                    # Early-stop logic (only for coarse stages)
                     if res < target_N and stage_solver.cfg.coarse_accept_limit > 0 and accepted_count >= stage_solver.cfg.coarse_accept_limit:  # type: ignore[attr-defined]
-                        print(f"[solver3] N={res}: early stop after {accepted_count} accepted minima")
                         raise _EarlyStop
 
             # Basinhopping call -------------------------------------------------
@@ -221,7 +235,10 @@ class ThomasFermiSolver(_BaseSolver):
 
             # If this was the final resolution, copy attributes back to *self*
             if res == target_N:
+                # Copy attributes, including frames, back to *self*
                 self.__dict__.update(stage_solver.__dict__)
+                # Store frames of final stage for video creation
+                self.nu_frames = stage_solver.nu_frames  # type: ignore[attr-defined]
                 break
 
             # Append energy history, avoid duplicating last value between stages
@@ -247,6 +264,65 @@ class ThomasFermiSolver(_BaseSolver):
             }
 
         return self.optimisation_result  # type: ignore[attr-defined]
+
+    # ------------------------------------------------------------------
+    # Override save_results to add video creation
+    # ------------------------------------------------------------------
+    def save_results(self, output_dir: Path | str = "results") -> None:  # type: ignore[override]
+        # First run parent implementation to save arrays & metadata
+        super().save_results(output_dir)
+
+        # Create movie from stored frames (if any)
+        if hasattr(self, "nu_frames") and self.nu_frames:
+            out_path = Path(output_dir)
+            video_path = out_path / "nu_evolution.mp4"
+
+            import matplotlib.pyplot as plt
+            cmap = plt.get_cmap("inferno")
+
+            # -------------------- MP4 via imageio-ffmpeg --------------------
+            try:
+                import imageio  # type: ignore
+                import imageio_ffmpeg  # type: ignore  # triggers ffmpeg binary download if missing
+
+                writer = imageio.get_writer(
+                    video_path,
+                    format="ffmpeg",
+                    fps=self.cfg.movie_fps,  # type: ignore[attr-defined]
+                    codec="libx264",
+                )
+                for frame in self.nu_frames:
+                    norm = np.clip(frame, 0.0, 1.0)
+                    rgba = cmap(norm)
+                    rgb = (rgba[:, :, :3] * 255).astype(np.uint8)
+                    writer.append_data(rgb)
+                writer.close()
+                print(f"Movie saved to {video_path.resolve()}")
+                return  # success
+            except Exception as e:
+                print("[solver3_movie] MP4 creation failed (", e, ") – falling back to GIF / PNG stack")
+
+            # ------------------------ GIF fallback -------------------------
+            try:
+                import imageio  # type: ignore  # reuse import
+                gif_path = video_path.with_suffix(".gif")
+                images = []
+                for frame in self.nu_frames:
+                    norm = np.clip(frame, 0.0, 1.0)
+                    rgba = cmap(norm)
+                    rgb = (rgba[:, :, :3] * 255).astype(np.uint8)
+                    images.append(rgb)
+                imageio.mimsave(gif_path, images, fps=self.cfg.movie_fps)  # type: ignore[attr-defined]
+                print(f"GIF saved to {gif_path.resolve()}")
+            except Exception as e2:
+                # --------------------- PNG stack fallback -------------------
+                print("[solver3_movie] GIF creation also failed:", e2)
+                png_dir = out_path / "nu_frames"
+                png_dir.mkdir(exist_ok=True)
+                for i, frame in enumerate(self.nu_frames):
+                    norm = np.clip(frame, 0.0, 1.0)
+                    plt.imsave(png_dir / f"frame_{i:04d}.png", norm, cmap="inferno", vmin=0.0, vmax=1.0)
+                print(f"Saved individual frames to {png_dir.resolve()}")
 
     # ------------------------------------------------------------------
     # Helper: resample ν field from *prev_N*×*prev_N* to *new_N*×*new_N*

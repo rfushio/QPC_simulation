@@ -42,6 +42,7 @@ class SimulationConfig:
 
     # Optimisation parameters
     niter: int = 5  # Basinhopping outer iterations
+    step_size: float = 0.5
     lbfgs_maxiter: int = 1000
     lbfgs_maxfun: int = 100000  # Maximum number of function evaluations for L-BFGS-B
 
@@ -243,7 +244,7 @@ class ThomasFermiSolver:
                 },
             },
             niter=self.cfg.niter,
-            stepsize=0.01,
+            stepsize=self.cfg.step_size,
             disp=True,
             callback=_bh_callback,
         )

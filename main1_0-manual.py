@@ -1,5 +1,5 @@
 # Using solver2 implementation (FFT-based Gaussian convolution)
-from solver2 import SimulationConfig, ThomasFermiSolver
+from solvers.solver2_random import RandomSimulationConfig, RandomThomasFermiSolver
 from datetime import datetime
 from pathlib import Path
 import numpy as np
@@ -12,7 +12,22 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 #     desired_pairs = [(-0.40, -1.35), (-0.40, -1.20)]
 # ------------------------------------------------------------
 
-desired_pairs = [(0.20, -1.50)]  # <-- EDIT THIS LIST
+DESIRED_PAIRS: list[tuple[float, float]] = [(0.20, -1.50)]
+
+SolverType = "solver2_random"
+
+# Square grid size N (replaces Nx, Ny)
+GRID_N: int = 64
+
+# Optimiser parameters
+BASINHOPPING_NITER: int = 3
+BASINHOPPING_STEP_SIZE: float = 1.0
+LBFGS_MAXITER: int = 1000
+LBFGS_MAXFUN: int = 200000
+
+# Potential offset / scaling (empirical)
+POTENTIAL_SCALE: float = 1.0
+POTENTIAL_OFFSET: float = 0.033  # V
 
 
 def parse_header(james_path: Path):
@@ -63,22 +78,22 @@ def _run_single_simulation(idx: int,
         The same idx (used only for progress reporting).
     """
 
-    cfg = SimulationConfig(
+    cfg = RandomSimulationConfig(
         potential_data=(x_nm, y_nm, V_vals),
         B=13.0,
-        niter=3,
-        lbfgs_maxiter=1000,
-        lbfgs_maxfun=200000,
-        Nx=64,
-        Ny=64,
+        niter=BASINHOPPING_NITER,
+        lbfgs_maxiter=LBFGS_MAXITER,
+        lbfgs_maxfun=LBFGS_MAXFUN,
+        Nx=GRID_N,
+        Ny=GRID_N,
         n_potentials=1,  # single run
-        potential_scale=1.0,
-        potential_offset=0.033,
-        solver_type="solver2",
+        potential_scale=POTENTIAL_SCALE,
+        potential_offset=POTENTIAL_OFFSET,
+        solver_type=SolverType,
         exc_file="data/0-data/Exc_data_digitized.csv",
     )
 
-    solver = ThomasFermiSolver(cfg)
+    solver = RandomThomasFermiSolver(cfg)
     pot_dir = Path(batch_dir_str) / f"pot{idx}"
     pot_dir.mkdir(parents=True, exist_ok=True)
 
@@ -154,7 +169,7 @@ def main():
     # tolerance for float comparison (absolutes in volts)
     tol = 1e-6
     idxs: list[int] = []
-    for pair in desired_pairs:
+    for pair in DESIRED_PAIRS:
         found = [i for i, vs in idx_to_vs.items() if abs(vs[0] - pair[0]) < tol and abs(vs[1] - pair[1]) < tol]
         if not found:
             raise ValueError(f"Requested pair {pair} not found in James.txt header.")

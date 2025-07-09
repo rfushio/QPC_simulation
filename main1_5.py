@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 import time
 
-from solver3_movie import SimulationConfig, ThomasFermiSolver
+from solvers.solver3 import SimulationConfig, ThomasFermiSolver
 
 # -----------------------------------------------------------------------------
 # USER-CONFIGURABLE PARAMETERS
@@ -18,12 +18,13 @@ from solver3_movie import SimulationConfig, ThomasFermiSolver
 DESIRED_PAIRS: list[tuple[float, float]] = [(0.20, -1.50)]
 
 # Square grid size N (replaces Nx, Ny)
-GRID_N: int = 32
+GRID_N: int = 128
 
 # Optimiser parameters
 BASINHOPPING_NITER: int = 10
+BASINHOPPING_STEP_SIZE: float = 1.0
 LBFGS_MAXITER: int = 1000
-LBFGS_MAXFUN: int = 200000
+LBFGS_MAXFUN: int = 2000000
 
 # Potential offset / scaling (empirical)
 POTENTIAL_SCALE: float = 1.0
@@ -60,6 +61,7 @@ def _run_single_simulation(idx: int,
         N=GRID_N,
         potential_data=(x_nm, y_nm, V_vals),
         niter=BASINHOPPING_NITER,
+        step_size=BASINHOPPING_STEP_SIZE,
         lbfgs_maxiter=LBFGS_MAXITER,
         lbfgs_maxfun=LBFGS_MAXFUN,
         potential_scale=POTENTIAL_SCALE,

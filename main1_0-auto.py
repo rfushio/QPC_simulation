@@ -1,7 +1,7 @@
 import numpy as np
 from datetime import datetime
 from pathlib import Path
-from solver1 import SimulationConfig, ThomasFermiSolver
+from solvers.solver1 import SimulationConfig, ThomasFermiSolver
 import re
 from concurrent.futures import ProcessPoolExecutor, as_completed
 

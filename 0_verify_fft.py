@@ -6,7 +6,7 @@ Script to verify that Fourier transform coefficients are calculated correctly
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from solver1 import SimulationConfig, ThomasFermiSolver
+from solvers.solver1 import SimulationConfig, ThomasFermiSolver
 
 def test_fft_normalization():
     """Test if FFT normalization coefficients are correct"""
