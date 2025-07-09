@@ -77,7 +77,7 @@ def plot_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None):
 
         plt.xlabel("x [nm]")
         plt.ylabel("ν (density)")
-        plt.title(f"Line cuts at V_SG={vsg} V (varying V_QPC)")
+        plt.title(f"X-Line cuts at V_SG={vsg} V (varying V_QPC)")
         plt.legend(fontsize="small", ncol=2)
         plt.tight_layout()
         out_path = save_dir / f"linecuts_VSG_{vsg:+.2f}V.png"
@@ -87,6 +87,6 @@ def plot_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None):
 
 
 if __name__ == "__main__":
-    run = Path("analysis_folder/20250708/20250708_113409")
+    run = Path("analysis_folder/20250708/20250708_183936")
     james = Path("data/1-data/Symmetry.txt")
     plot_by_vsg(run, james) 

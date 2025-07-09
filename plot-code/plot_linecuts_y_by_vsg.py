@@ -83,6 +83,6 @@ def plot_y_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None)
 
 
 if __name__ == "__main__":
-    run_dir = Path("analysis_folder/20250708/20250708_113409")
+    run_dir = Path("analysis_folder/20250708/20250708_183936")
     james_txt = Path("data/1-data/Symmetry.txt")
     plot_y_by_vsg(run_dir, james_txt) 
