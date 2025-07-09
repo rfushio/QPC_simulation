@@ -50,6 +50,8 @@ class SimulationConfig:
     # Potential data number
     n_potentials: int = 0 #number of potentials to simulate
 
+    solver_type: str = "solver1"  # Identifier for which solver is being used
+
 
     # In-memory external potential data (x [nm], y [nm], V [V])
     potential_data: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None

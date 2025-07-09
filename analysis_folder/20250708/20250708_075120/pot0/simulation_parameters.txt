@@ -25,3 +25,6 @@ potential_data = (array([-293.23743722, -300.        , -300.        , ...,  192.
 # Execution time
 execution_time_seconds = 724.501075
 execution_time_minutes = 12.075018
+
+#solver-solver_type
+"solver2"
