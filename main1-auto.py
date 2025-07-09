@@ -92,7 +92,7 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
             Nx=128,
             Ny=128,
             potential_scale=1.0,
-            potential_offset=0.033,
+            potential_offset=0.033,  
         )
 
         solver = ThomasFermiSolver(cfg)
@@ -117,11 +117,14 @@ def run_sequential_sim(james_file: str = "data/1-data/James.txt", max_potentials
 
         np.savez_compressed(
             out_dir / "results.npz",
-            nu_opt=solver.nu_opt,
-            nu_smoothed=solver.nu_smoothed,
-            Phi=solver.Phi,
-            x=solver.x,
-            y=solver.y,
+            **{
+                "nu_opt": solver.nu_opt,
+                "nu_smoothed": solver.nu_smoothed,
+                "Phi": solver.Phi,
+                "x": solver.x,
+                "y": solver.y,
+                **({"energy_history": np.array(solver.energy_history)} if hasattr(solver, "energy_history") else {}),
+            }
         )
 
         with (out_dir / "optimisation.txt").open("w", encoding="utf-8") as f:

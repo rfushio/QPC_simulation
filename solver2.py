@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 from pathlib import Path
 import time
 
@@ -217,7 +217,17 @@ class ThomasFermiSolver:
     def optimise(self):
         """Run global optimisation to find the ground-state filling factor."""
         start_time = time.time()
-        
+
+        # -------------------------------------------------------------
+        # Track energy value after each accepted basinhopping iteration
+        # -------------------------------------------------------------
+        self.energy_history: list[float] = [self.energy(self.nu0.copy())]
+
+        def _bh_callback(x, f, accept):
+            """Basinhopping callback to log accepted minima energies."""
+            if accept:
+                self.energy_history.append(float(f))
+
         bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
         result = basinhopping(
             self.energy,
@@ -235,6 +245,7 @@ class ThomasFermiSolver:
             niter=self.cfg.niter,
             stepsize=0.01,
             disp=True,
+            callback=_bh_callback,
         )
 
         end_time = time.time()
@@ -308,6 +319,12 @@ class ThomasFermiSolver:
         if save_dir_path is not None:
             fig2.savefig(save_dir_path / "phi.png", dpi=300)
 
+        # --------------------------------------------------------------
+        # Plot energy history (if available) and save as energy_decrease.png
+        # --------------------------------------------------------------
+        if save_dir_path is not None and hasattr(self, "energy_history") and len(self.energy_history) >= 2:
+            self._plot_energy_decrease(save_dir_path)
+
         if show:
             plt.show()
         else:
@@ -333,15 +350,19 @@ class ThomasFermiSolver:
         out_path = Path(output_dir)
         out_path.mkdir(parents=True, exist_ok=True)
 
-        # Save arrays
-        np.savez_compressed(
-            out_path / "results.npz",
-            nu_opt=self.nu_opt,
-            nu_smoothed=self.nu_smoothed,
-            Phi=self.Phi,
-            x=self.x,
-            y=self.y,
-        )
+        # Save arrays – include energy history if available
+        save_dict: dict[str, Any] = {
+            "nu_opt": self.nu_opt,
+            "nu_smoothed": self.nu_smoothed,
+            "Phi": self.Phi,
+            "x": self.x,
+            "y": self.y,
+        }
+
+        if hasattr(self, "energy_history") and self.energy_history:
+            save_dict["energy_history"] = np.array(self.energy_history)
+
+        np.savez_compressed(out_path / "results.npz", **save_dict)
 
         # Save optimisation summary
         with open(out_path / "optimisation.txt", "w", encoding="utf-8") as f:
@@ -369,3 +390,48 @@ class ThomasFermiSolver:
         # ------------------------------------------------------------------------
 
         print(f"Results saved to {out_path.resolve()}") 
+
+    # ------------------------------------------------------------------
+    # Internal helper: energy vs iteration / ΔE plot
+    # ------------------------------------------------------------------
+    def _plot_energy_decrease(self, out_dir: Path) -> None:  # noqa: D401
+        """Save energy and ΔE per iteration plot into *out_dir*.
+
+        Uses energy_history; skips initial value, ΔE bars from iteration ≥2.
+        Output: energy_decrease.png
+        """
+
+        import numpy as _np
+        import matplotlib.pyplot as _plt
+
+        energy_full = _np.asarray(self.energy_history, dtype=float)
+        if energy_full.size < 2:
+            return
+
+        iterations = _np.arange(1, energy_full.size)
+        energy = energy_full[1:]
+        delta_E = -_np.diff(energy_full)
+
+        fig, ax1 = _plt.subplots(figsize=(7, 4))
+
+        ax1.set_xlabel("Basinhopping iteration")
+        ax1.set_ylabel("Energy [meV]", color="tab:blue")
+        ax1.plot(iterations, energy, marker="o", color="tab:blue", label="Energy")
+        ax1.tick_params(axis="y", labelcolor="tab:blue")
+
+        ax2 = ax1.twinx()
+        ax2.set_ylabel("Energy decrease [meV]", color="tab:red")
+        ax2.bar(iterations[1:], delta_E[1:], color="tab:red", alpha=0.4, label="ΔEnergy (iter≥2)")
+        ax2.tick_params(axis="y", labelcolor="tab:red")
+
+        fig.tight_layout()
+
+        lines, labels = [], []
+        for ax in [ax1, ax2]:
+            l, lab = ax.get_legend_handles_labels()
+            lines.extend(l)
+            labels.extend(lab)
+        fig.legend(lines, labels, loc="upper right")
+
+        fig.savefig(out_dir / "energy_decrease.png", dpi=300, bbox_inches="tight")
+        _plt.close(fig) 

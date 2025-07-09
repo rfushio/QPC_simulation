@@ -12,7 +12,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 #     desired_pairs = [(-0.40, -1.35), (-0.40, -1.20)]
 # ------------------------------------------------------------
 
-desired_pairs = [(-4.00, -1.50),(-2.80, -1.50),(-1.30, -1.50),(0.20, -1.50),(1.70, -1.50),(3.20, -1.50)]  # <-- EDIT THIS LIST
+desired_pairs = [(0.20, -1.50)]  # <-- EDIT THIS LIST
 
 
 def parse_header(james_path: Path):
@@ -66,11 +66,11 @@ def _run_single_simulation(idx: int,
     cfg = SimulationConfig(
         potential_data=(x_nm, y_nm, V_vals),
         B=13.0,
-        niter=1,
+        niter=100,
         lbfgs_maxiter=1000,
-        lbfgs_maxfun=2000000,
-        Nx=128,
-        Ny=128,
+        lbfgs_maxfun=100000,
+        Nx=32,
+        Ny=32,
         n_potentials=1,  # single run
         potential_scale=1.0,
         potential_offset=0.033,
@@ -108,14 +108,19 @@ def _run_single_simulation(idx: int,
     solver.plot_results(save_dir=str(pot_dir), title_extra=title_extra)
 
     # Save arrays
-    np.savez_compressed(
-        pot_dir / "results.npz",
-        nu_opt=solver.nu_opt,
-        nu_smoothed=solver.nu_smoothed,
-        Phi=solver.Phi,
-        x=solver.x,
-        y=solver.y,
-    )
+    save_dict = {
+        "nu_opt": solver.nu_opt,
+        "nu_smoothed": solver.nu_smoothed,
+        "Phi": solver.Phi,
+        "x": solver.x,
+        "y": solver.y,
+    }
+
+    # Add energy history if present
+    if hasattr(solver, "energy_history"):
+        save_dict["energy_history"] = np.array(solver.energy_history)
+
+    np.savez_compressed(pot_dir / "results.npz", **save_dict)
 
     # Save optimisation summary
     with (pot_dir / "optimisation.txt").open("w", encoding="utf-8") as f:
