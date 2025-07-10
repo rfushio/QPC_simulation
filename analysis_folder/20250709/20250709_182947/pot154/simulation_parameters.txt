@@ -286,3 +286,11 @@ potential_data = (array([-1.43473084e+02, -1.76924310e+01, -8.88178420e-15,  1.7
 solver_type = solver3
 N = 128
 coarse_accept_limit = 1
+
+# Execution time
+execution_time_seconds = 4120.500019
+execution_time_minutes = 68.675000
+
+# Execution time
+execution_time_seconds = 4120.500362
+execution_time_minutes = 68.675006

@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 import time
 
-from solvers.solver3 import SimulationConfig, ThomasFermiSolver
+from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 
 # -----------------------------------------------------------------------------
 # USER-CONFIGURABLE PARAMETERS
