@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-DEFAULT_JAMES_PATH = Path("data/1-data/James.txt")
+DEFAULT_JAMES_PATH = Path("data/1-data/James2.txt")
 
 
 def load_sampling_points(james_path: Path = DEFAULT_JAMES_PATH) -> tuple[np.ndarray, np.ndarray]:
@@ -34,7 +34,7 @@ def plot_sampling(x_nm: np.ndarray, y_nm: np.ndarray, save_path: Path | None = N
     plt.scatter(x_nm, y_nm, s=6, color="tab:blue", alpha=0.8, edgecolors="none")
     plt.xlabel("x [nm]")
     plt.ylabel("y [nm]")
-    plt.title("James.txt sampling points (1538 total)")
+    plt.title("James2.txt sampling points")
     plt.axis("equal")
     plt.tight_layout()
 

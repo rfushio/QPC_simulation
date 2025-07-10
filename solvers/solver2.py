@@ -53,6 +53,8 @@ class SimulationConfig:
     # Potential data number
     n_potentials: int = 0 #number of potentials to simulate
 
+    # Potential name
+    Potential_name: str = "james"
 
     # In-memory external potential data (x [nm], y [nm], V [V])
     potential_data: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
