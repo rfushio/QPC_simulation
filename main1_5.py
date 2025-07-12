@@ -15,7 +15,7 @@ from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 
 # List of desired (V_QPC, V_SG) pairs in volts that you wish to simulate.
 # These must exist in the header of data/1-data/James.txt
-DESIRED_PAIRS: list[tuple[float, float]] = [(0.20, -1.50)]
+DESIRED_PAIRS: list[tuple[float, float]] = [(-4.0, -1.50),(-3.70, -1.50),(-3.40, -1.50),(-3.10, -1.50),(-2.80, -1.50),(-2.50, -1.50),(-2.20, -1.50),(-1.90, -1.50),(-1.60, -1.50),(-1.30, -1.50),(-1.00, -1.50),(-0.70, -1.50),(-0.40, -1.50),(-0.10, -1.50),(0.20, -1.50),(0.50, -1.50),(0.80, -1.50),(1.10, -1.50),(1.40, -1.50),(1.70, -1.50),(2.00, -1.50),(2.30, -1.50),(2.60, -1.50),(2.90, -1.50),(3.20, -1.50),(3.50, -1.50),(3.80, -1.50)]
 
 # Square grid size N (replaces Nx, Ny)
 GRID_N: int = 128
@@ -109,7 +109,7 @@ def _run_single_simulation(idx: int,
 
 def main() -> None:
     # ---------------------- load combined potential file --------------------
-    data = np.loadtxt("data/1-data/James.txt", comments="%")
+    data = np.loadtxt("data/1-data/James2.txt", comments="%")
 
     mask = (
         (data[:, 0] >= -150) & (data[:, 0] <= 150) &
@@ -119,7 +119,7 @@ def main() -> None:
     y_nm = data[mask, 1]
     V_columns = data[mask, 3:]
 
-    james_path = Path("data/1-data/James.txt")
+    james_path = Path("data/1-data/James2.txt")
     idx_to_vs = parse_header(james_path)
 
     # Map requested pairs → column indices
@@ -128,7 +128,7 @@ def main() -> None:
     for pair in DESIRED_PAIRS:
         found = [i for i, vs in idx_to_vs.items() if abs(vs[0]-pair[0]) < tol and abs(vs[1]-pair[1]) < tol]
         if not found:
-            raise ValueError(f"Requested pair {pair} not found in James.txt header.")
+            raise ValueError(f"Requested pair {pair} not found in James2.txt header.")
         idxs.append(found[0])
 
     # ---------------------- prepare output directories ----------------------

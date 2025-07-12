@@ -99,6 +99,6 @@ def plot_grouped_by_vqpc(run_dir: Path, james_path: Path, save_dir: Path | None 
 
 
 if __name__ == "__main__":
-    run_path = Path("analysis_folder/20250707/run_175138")
-    james_txt = Path("data/1-data/James.txt")
+    run_path = Path("analysis_folder/20250711/20250711_213220")
+    james_txt = Path("data/1-data/James2.txt")
     plot_grouped_by_vqpc(run_path, james_txt) 

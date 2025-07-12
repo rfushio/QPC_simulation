@@ -6,7 +6,7 @@ Detailed Fourier transform coefficient verification script
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from solver1 import SimulationConfig, ThomasFermiSolver
+from solvers.solver2 import SimulationConfig, ThomasFermiSolver
 
 def check_fft_coefficients():
     """Detailed FFT coefficient check"""

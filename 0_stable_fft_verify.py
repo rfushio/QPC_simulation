@@ -6,7 +6,7 @@ Stable Fourier transform coefficient verification script (Qhull error avoidance 
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from solver2 import SimulationConfig, ThomasFermiSolver
+from solvers.solver2 import SimulationConfig, ThomasFermiSolver
 
 def test_fft_normalization():
     """Test if FFT normalization coefficients are correct"""
