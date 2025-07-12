@@ -1,0 +1,36 @@
+e = 1.602e-19
+epsilon_0 = 8.854e-12
+h = 6.62607015e-34
+B = 13.0
+dt = 3e-08
+db = 3e-08
+epsilon_perp = 3.0
+epsilon_parallel = 6.6
+margin = 0.0
+potential_file = data/0-data/VNS=2.1.txt
+potential_scale = 1.0
+potential_offset = 0.033
+exc_file = data/0-data/Exc_data_digitized.csv
+niter = 10
+step_size = 1.0
+lbfgs_maxiter = 1000
+lbfgs_maxfun = 1000000
+Nx = 64
+Ny = 64
+n_potentials = 0
+Potential_name = James2
+potential_data = (array([ -11.88568749,   -9.90502642,   -7.92436534, ..., -138.6681663 ,
+       -122.85726862, -126.82051815], shape=(6741,)), array([ 150.        ,  146.54762199,  150.        , ..., -150.        ,
+       -150.        , -150.        ], shape=(6741,)), array([-0.30700324, -0.30265034, -0.30848796, ..., -0.0466624 ,
+       -0.08825016, -0.07623173], shape=(6741,)))
+solver_type = solver3
+N = 64
+coarse_accept_limit = 1
+
+# Execution time
+execution_time_seconds = 517.239289
+execution_time_minutes = 8.620655
+
+# Execution time
+execution_time_seconds = 517.239713
+execution_time_minutes = 8.620662

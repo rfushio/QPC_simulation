@@ -12,6 +12,8 @@ from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 # -----------------------------------------------------------------------------
 # USER-CONFIGURABLE PARAMETERS
 # -----------------------------------------------------------------------------
+SolverType = "solver3"
+POTENTIAL_NAME="James2"
 
 # List of desired (V_QPC, V_SG) pairs in volts that you wish to simulate.
 # These must exist in the header of data/1-data/James.txt
@@ -20,11 +22,13 @@ DESIRED_PAIRS: list[tuple[float, float]] = [(-4.0, -1.50),(-3.70, -1.50),(-3.40,
 # Square grid size N (replaces Nx, Ny)
 GRID_N: int = 128
 
+COARSE_ACCEPT_LIMIT: int = 1
+
 # Optimiser parameters
 BASINHOPPING_NITER: int = 10
 BASINHOPPING_STEP_SIZE: float = 1.0
 LBFGS_MAXITER: int = 1000
-LBFGS_MAXFUN: int = 2000000
+LBFGS_MAXFUN: int = 1000000
 
 # Potential offset / scaling (empirical)
 POTENTIAL_SCALE: float = 1.0
@@ -59,6 +63,7 @@ def _run_single_simulation(idx: int,
 
     cfg = SimulationConfig(
         N=GRID_N,
+        Potential_name=POTENTIAL_NAME,
         potential_data=(x_nm, y_nm, V_vals),
         niter=BASINHOPPING_NITER,
         step_size=BASINHOPPING_STEP_SIZE,
@@ -67,7 +72,8 @@ def _run_single_simulation(idx: int,
         potential_scale=POTENTIAL_SCALE,
         potential_offset=POTENTIAL_OFFSET,
         exc_file="data/0-data/Exc_data_digitized.csv",
-        solver_type="solver3",
+        solver_type=SolverType,
+        coarse_accept_limit=COARSE_ACCEPT_LIMIT,
     )
 
     solver = ThomasFermiSolver(cfg)
