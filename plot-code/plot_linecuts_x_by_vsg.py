@@ -87,6 +87,6 @@ def plot_by_vsg(run_dir: Path, james_path: Path, save_dir: Path | None = None):
 
 
 if __name__ == "__main__":
-    run = Path("analysis_folder/20250711/20250711_213220")
+    run = Path("analysis_folder/20250714/20250714_150546")
     james = Path("data/1-data/James2.txt")
     plot_by_vsg(run, james) 

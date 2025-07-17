@@ -91,6 +91,6 @@ def plot_y_by_vqpc(run_dir: Path, james_path: Path, save_dir: Path | None = None
 
 
 if __name__ == "__main__":
-    run = Path("analysis_folder/20250702/run_152740")
+    run = Path("analysis_folder/20250714/20250714_150546")
     james = Path("data/1-data/James.txt")
     plot_y_by_vqpc(run, james) 

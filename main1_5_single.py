@@ -3,7 +3,7 @@
 import numpy as np
 from datetime import datetime
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, as_completed
+# from concurrent.futures import ProcessPoolExecutor, as_completed  # parallel exec not used
 import re
 import time
 
@@ -22,13 +22,13 @@ DESIRED_PAIRS: list[tuple[float, float]] = [(-4.0, -1.50),(-3.70, -1.50),(-3.40,
 # Square grid size N (replaces Nx, Ny)
 GRID_N: int = 128
 
-COARSE_ACCEPT_LIMIT: int = 1
+COARSE_ACCEPT_LIMIT: int = 5
 
 # Optimiser parameters
 BASINHOPPING_NITER: int = 10
 BASINHOPPING_STEP_SIZE: float = 1.0
 LBFGS_MAXITER: int = 1000
-LBFGS_MAXFUN: int = 1000000
+LBFGS_MAXFUN: int = 2000000
 
 # Potential offset / scaling (empirical)
 POTENTIAL_SCALE: float = 1.0
@@ -154,14 +154,13 @@ def main() -> None:
         pair = list(idx_to_vs.values())[idx]
         tasks.append((idx, x_nm, y_nm, V_vals, pair, str(batch_dir)))
 
-    with ProcessPoolExecutor() as executor:
-        futures = [executor.submit(_run_single_simulation, *t) for t in tasks]
-        for fut in as_completed(futures):
-            try:
-                finished_idx = fut.result()
-                print(f"Finished simulation for idx={finished_idx}")
-            except Exception as e:
-                print(f"Simulation failed: {e}")
+    # Run simulations sequentially instead of in parallel
+    for task in tasks:
+        try:
+            finished_idx = _run_single_simulation(*task)
+            print(f"Finished simulation for idx={finished_idx}")
+        except Exception as e:
+            print(f"Simulation failed: {e}")
 
     print(f"All simulations complete. Results stored in {batch_dir}")
 
