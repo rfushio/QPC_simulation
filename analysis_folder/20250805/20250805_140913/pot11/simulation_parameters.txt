@@ -1,0 +1,29 @@
+e = 1.602e-19
+epsilon_0 = 8.854e-12
+h = 6.62607015e-34
+B = 13.0
+dt = 3e-08
+db = 3e-08
+epsilon_perp = 3.0
+epsilon_parallel = 6.6
+margin = 0.0
+potential_file = data/0-data/VNS=2.1.txt
+potential_scale = 1.0
+potential_offset = 0.033
+exc_file = data/0-data/Exc_data_digitized.csv
+niter = 10
+step_size = 1.0
+lbfgs_maxiter = 1000
+lbfgs_maxfun = 1000000
+Nx = 128
+Ny = 128
+n_potentials = 0
+Potential_name = James2
+potential_data = (array([ -11.88568749,   -9.90502642,   -7.92436534, ..., -138.6681663 ,
+       -122.85726862, -126.82051815]), array([ 150.        ,  146.54762199,  150.        , ..., -150.        ,
+       -150.        , -150.        ]), array([-0.3153812 , -0.311828  , -0.31663247, ..., -0.08674361,
+       -0.1252874 , -0.11435262]))
+solver_type = solver2
+N = 128
+coarse_accept_limit = 1
+movie_fps = 5

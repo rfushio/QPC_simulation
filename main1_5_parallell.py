@@ -12,12 +12,12 @@ from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 # -----------------------------------------------------------------------------
 # USER-CONFIGURABLE PARAMETERS
 # -----------------------------------------------------------------------------
-SolverType = "solver3"
+SolverType = "solver2"
 POTENTIAL_NAME="James2"
 
 # List of desired (V_QPC, V_SG) pairs in volts that you wish to simulate.
 # These must exist in the header of data/1-data/James.txt
-DESIRED_PAIRS: list[tuple[float, float]] = [(-4.0, -1.50),(-3.70, -1.50),(-3.40, -1.50),(-3.10, -1.50),(-2.80, -1.50),(-2.50, -1.50),(-2.20, -1.50),(-1.90, -1.50),(-1.60, -1.50),(-1.30, -1.50),(-1.00, -1.50),(-0.70, -1.50),(-0.40, -1.50),(-0.10, -1.50),(0.20, -1.50),(0.50, -1.50),(0.80, -1.50),(1.10, -1.50),(1.40, -1.50),(1.70, -1.50),(2.00, -1.50),(2.30, -1.50),(2.60, -1.50),(2.90, -1.50),(3.20, -1.50),(3.50, -1.50),(3.80, -1.50)]
+DESIRED_PAIRS: list[tuple[float, float]] = [(-4.0, -1.50)]
 
 # Square grid size N (replaces Nx, Ny)
 GRID_N: int = 128
