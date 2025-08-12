@@ -6,7 +6,7 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 import time
-
+import os
 from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 
 # -----------------------------------------------------------------------------
@@ -14,6 +14,8 @@ from solvers.solver3_movie import SimulationConfig, ThomasFermiSolver
 # -----------------------------------------------------------------------------
 SolverType = "solver2"
 POTENTIAL_NAME="James2"
+# Number of workers to use for parallel execution
+MAX_WORKERS: int = os.cpu_count()-1
 
 # List of desired (V_QPC, V_SG) pairs in volts that you wish to simulate.
 # These must exist in the header of data/1-data/James.txt
@@ -154,7 +156,7 @@ def main() -> None:
         pair = list(idx_to_vs.values())[idx]
         tasks.append((idx, x_nm, y_nm, V_vals, pair, str(batch_dir)))
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(_run_single_simulation, *t) for t in tasks]
         for fut in as_completed(futures):
             try:
