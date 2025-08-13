@@ -39,6 +39,7 @@ class SimulationConfig:
 
     # Exchange–correlation data (nu, Exc)
     exc_file: str = "data/0-data/Exc_data_digitized.csv"
+    exc_scale: float = 1.0  # Scale factor applied to Exc
 
     # Optimisation parameters
     niter: int = 5  # Basinhopping outer iterations
@@ -209,7 +210,7 @@ class ThomasFermiSolver:
         E_phi = np.sum(-self.cfg.e * self.Phi * n_eff) * self.dA * self.J_to_meV
 
         # Exchange–correlation energy (interpolated)
-        E_xc = np.sum(self.exc_interp(nu_eff)) * self.dA * self.D
+        E_xc = np.sum(self.exc_interp(nu_eff)) * self.dA * self.D * self.cfg.exc_scale
 
         total = E_phi + E_xc + E_C
         return float(total)
@@ -296,7 +297,7 @@ class ThomasFermiSolver:
 
         # ν(r)
         fig1 = plt.figure(figsize=(6, 5))
-        plt.imshow(self.nu_smoothed.T, extent=extent, origin="lower", cmap="inferno", aspect="auto", vmin=0.0, vmax=1.0)
+        plt.imshow(self.nu_smoothed.T, extent=extent, origin="lower", cmap="viridis", aspect="auto", vmin=0.0, vmax=1.0)
         base_title = "Optimised Filling Factor ν(r)"
         if title_extra:
             base_title += f"\n{title_extra}"

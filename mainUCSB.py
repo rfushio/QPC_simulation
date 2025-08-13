@@ -6,6 +6,7 @@ from dataclasses import asdict
 import numpy as np
 
 from solvers.solverUCSB import SimulationConfig, ThomasFermiSolver
+import matplotlib.pyplot as plt
 
 
 # -----------------------------------------------------------------------------
@@ -13,7 +14,7 @@ from solvers.solverUCSB import SimulationConfig, ThomasFermiSolver
 # -----------------------------------------------------------------------------
 
 # Grid resolution (square)
-GRID_N: int = 128
+GRID_N: int = 32
 
 # Physical / material parameters (inherited by solverUCSB)
 BASINHOPPING_NITER: int = 10
@@ -21,27 +22,45 @@ BASINHOPPING_STEP_SIZE: float = 1.0
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 
-# Domain bounds in nm (fixed at 300 nm × 300 nm)
-X_MIN_NM: float = -150.0
-X_MAX_NM: float = 150.0
-Y_MIN_NM: float = -150.0
-Y_MAX_NM: float = 150.0
+# Magnetic field and magnetic length based domain (total size = 40 l_B)
+B_FIELD_T: float = 13.0  # Tesla
+
+def magnetic_length_m(B_T: float) -> float:
+    # l_B = sqrt(h / (2π e B))
+    h = 6.62607015e-34
+    e = 1.602e-19
+    return float(np.sqrt(h / (2.0 * np.pi * e * B_T)))
+
+L_B_M: float = magnetic_length_m(B_FIELD_T)
+HALF_SPAN_M: float = 20.0 * L_B_M  # half of 40 l_B
+
+# Domain bounds in nm derived from l_B
+X_MIN_NM: float = -HALF_SPAN_M * 1e9
+X_MAX_NM: float = +HALF_SPAN_M * 1e9
+Y_MIN_NM: float = -HALF_SPAN_M * 1e9
+Y_MAX_NM: float = +HALF_SPAN_M * 1e9
 
 # X-shaped bar width in nm
-BAR_WIDTH_NM: float = 35.0
+BAR_WIDTH_NM: float = 70
 
 # Gate voltages [V]
 # Simulate multiple pairs if desired
 V_NS_EW_PAIRS: list[tuple[float, float]] = [
-    (-2.0, -1.0),
+    (0.19, 0.51),
 ]
 
 # Back-gate voltage [V]
-V_B: float = 0.0
+V_B: float = -0.19
+# Thickness of the top BN and bottom BN[nm]
+D_T: float = 30.0 
+D_B: float = 30.0
 
 # Optional scaling/offset (kept for compatibility; typically keep as-is)
 POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
+
+# Optional scaling factor for XC potential
+XC_SCALE: float = 1.5
 
 
 # -----------------------------------------------------------------------------
@@ -99,20 +118,44 @@ def build_vt_grid(
 # -----------------------------------------------------------------------------
 
 def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
+    # Build Vt grid first
+    vt_grid = build_vt_grid(
+        GRID_N,
+        X_MIN_NM,
+        X_MAX_NM,
+        Y_MIN_NM,
+        Y_MAX_NM,
+        BAR_WIDTH_NM,
+        V_NS,
+        V_EW,
+        
+    )
+
+    # Plot V_t grid and save (axes in l_B units)
+    extent_lB = (
+        X_MIN_NM / (L_B_M * 1e9),
+        X_MAX_NM / (L_B_M * 1e9),
+        Y_MIN_NM / (L_B_M * 1e9),
+        Y_MAX_NM / (L_B_M * 1e9),
+    )
+    plt.figure(figsize=(5.5, 5))
+    im = plt.imshow(vt_grid.T, origin="lower", extent=extent_lB, cmap="coolwarm", aspect="auto")
+    plt.colorbar(im, label="V_t [V]")
+    plt.title(f"V_t grid (V_NS={V_NS:+.2f} V, V_EW={V_EW:+.2f} V)")
+    plt.xlabel("x [l_B]")
+    plt.ylabel("y [l_B]")
+    plt.tight_layout()
+    plt.savefig(out_dir / "vt_grid.png", dpi=220)
+    plt.close()
+
     cfg = SimulationConfig(
         Nx=GRID_N,
         Ny=GRID_N,
+        B=B_FIELD_T,
         V_B=V_B,
-        Vt_grid=build_vt_grid(
-            GRID_N,
-            X_MIN_NM,
-            X_MAX_NM,
-            Y_MIN_NM,
-            Y_MAX_NM,
-            BAR_WIDTH_NM,
-            V_NS,
-            V_EW,
-        ),
+        dt=D_T*1e-9,
+        db=D_B*1e-9,
+        Vt_grid=vt_grid,
         x_min_nm=X_MIN_NM,
         x_max_nm=X_MAX_NM,
         y_min_nm=Y_MIN_NM,
@@ -123,8 +166,9 @@ def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
         lbfgs_maxfun=LBFGS_MAXFUN,
         potential_scale=POTENTIAL_SCALE,
         potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_digitized.csv",
+        exc_file="data/0-data/Exc_data_new.csv",
         solver_type="solverUCSB",
+        exc_scale=XC_SCALE,
     )
 
     solver = ThomasFermiSolver(cfg)

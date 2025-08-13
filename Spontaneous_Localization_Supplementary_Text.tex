@@ -1,0 +1,272 @@
+\documentclass[reprint,prl,aps,superscriptaddress]{revtex4-1}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{amsmath, braket, amsfonts}
+\usepackage{amssymb}
+\usepackage{natbib}
+\usepackage{sidecap}
+\usepackage{bm, color, ulem}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+\usepackage{wrapfig,lipsum,booktabs}
+
+
+\usepackage{siunitx}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand\dif{\mathop{}\!\mathrm{d}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+
+
+\newcommand{\ay}[1]{ {\color{pink}{afy: {#1}}}}
+\newcommand{\lc}[1]{ {\color{red}{liam: {#1}}}}
+\newcommand{\ns}[1]{ {\color{blue}{noah: {#1}}}}
+\newcommand{\mz}[1]{ {\color{blue}{mike: {#1}}}}
+\newcommand{\change}[2]{ {\sout{#1}}#2}
+\DeclareUnicodeCharacter{03BD}{{$\nu$}}
+
+\makeatletter
+\def\maketitle{
+\@author@finish
+\title@column\titleblock@produce
+\suppressfloats[t]}
+\makeatother
+
+\begin{document}
+\title{Supplementary Information: Spontaneous localization at a potential saddle point from edge state reconstruction in a quantum Hall point contact}
+
+\author{Liam A. Cohen}
+\thanks{These authors contributed equally to this work}
+\affiliation{Department of Physics, University of California at Santa Barbara, Santa Barbara CA 93106, USA}
+\author{Noah L. Samuelson}
+\thanks{These authors contributed equally to this work}
+\affiliation{Department of Physics, University of California at Santa Barbara, Santa Barbara CA 93106, USA}
+
+\author{Taige Wang}
+\affiliation{Department of Physics, University of California, Berkeley, California 94720, USA}
+\affiliation{Material Science Division, Lawrence Berkeley National Laboratory, Berkeley, California 94720, USA}
+\author{Kai Klocke}
+\affiliation{Department of Physics, University of California, Berkeley, California 94720, USA}
+\author{Cian C. Reeves}
+\affiliation{Department of Physics, University of California at Santa Barbara, Santa Barbara CA 93106, USA}
+\author{Takashi Taniguchi}
+\affiliation{International Center for Materials Nanoarchitectonics,
+National Institute for Materials Science,  1-1 Namiki, Tsukuba 305-0044, Japan}
+\author{Kenji Watanabe}
+\affiliation{Research Center for Functional Materials,
+National Institute for Materials Science, 1-1 Namiki, Tsukuba 305-0044, Japan}
+\author{Sagar Vijay}
+\affiliation{Department of Physics, University of California at Santa Barbara, Santa Barbara CA 93106, USA}
+\author{Michael P. Zaletel}
+\affiliation{Department of Physics, University of California, Berkeley, California 94720, USA}
+\affiliation{Material Science Division, Lawrence Berkeley National Laboratory, Berkeley, California 94720, USA}
+\author{Andrea F. Young}
+\email{andrea@physics.ucsb.edu}
+\affiliation{Department of Physics, University of California at Santa Barbara, Santa Barbara CA 93106, USA}
+
+\date{\today}
+\maketitle
+\onecolumngrid
+
+\section{Methods}
+
+\subsection{Measurement}
+Experiments were performed in a dry dilution refrigerator with a base temperature of ~20mK.  Electronic filters are used in line with transport and gate contacts in order to lower the effective electron temperature.  To improve edge mode equilibration to the contacts most measurements are performed at 300mK unless otherwise noted.  Electronic measurements were performed using standard lock-in amplifier techniques.  For the diagonal conductance measurements an AC voltage bias at 17.77Hz is applied via a 1000x resistor divider to (see supplementary Fig.~1 for contact references) C3-4 and the resulting current is measured using an Ithaco 1211 trans-impedance amplifier on C5-6 with a gain of $10^{-7}$ A/V.  The voltage is measured between contacts C1-2 and C7-8 with an SR560 voltage pre-amplifier with a gain of 1000.  For two terminal measurements the same AC bias is applied to contacts C1-4 and the current is measured via C5-8.  DC bias was added on top of the AC bias using a passive summer.
+
+
+We use transport contacts in pairs to decrease the contact resistance - improving transport quality. The diagonal conductance is determined by exciting an AC voltage on contacts C3/C4, and then measuring the resulting AC current $I_\mathrm{out}$ on contacts C5/C6. The diagonal voltage drop, $V_D$, is measured from C1/C2 to C7/C8. The differential diagonal conductance is then defined as $G_D = I_\mathrm{out}/V_D$.
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=100mm]{QPC20_Device_Image.pdf}
+    \caption{\textbf{Optical Micrograph of Measured Device} Transport contacts to the monolayer are  labeled C1-8, while the gates are labeled by their corresponding control voltages $V_i$.}
+    \label{fig:supp_device}
+\end{figure*}
+
+
+\subsection{Thomas-Fermi Simulation}
+
+We consider a classical effective model wherein the electron density $n(\mathbf{r})$ of the two-dimensional electron gas adjusts according to the local electrostatic potential and compressibility of an interacting Landau-level (LL).
+The classical energy functional can be decomposed into the Hartree energy, the interaction with an externally applied  potential $\Phi(\mathbf{r})$, and the remainder,
+\be
+    \begin{aligned}
+        \mathcal{E}[n(\mathbf{r})] &= \frac{e^2}{2}\int_{{\bf{r_1}, \bf{r_2}}} n({\bf{r_1}}) V({\bf{r_1}, \bf{r_2}}) n({\bf{r_2}})\\
+        & \qquad \qquad - e\int_{\mathbf{r}} \Phi(\mathbf{r}) n(\mathbf{r}) + \mathcal{E}_{xc}[n(\mathbf{r})],
+    \end{aligned}
+\ee
+
+$\mathcal{E}_{xc}[n]$ contains not only the exchange-correlation energy but also single-particle contributions (e.g. inter-LL interactions, disorder, Zeeman energies, etc.). If $n(\mathbf{r})$ varies slowly compared with $\ell_{B}$, we may neglect the dependence of the functional $\mathcal{E}_{xc}[n(\mathbf{r})]$ on the gradient $\boldsymbol{\nabla} n$ and employ the local density approximation (LDA),
+\begin{equation}
+    \mathcal{E}_{xc}[n(\mathbf{r})] = \int_{\mathbf{r}} E_{xc}(n(\mathbf{r}))
+\end{equation}
+where $E_{xc}(n)$ is determined for a system at \textit{constant} density $n$.
+Our aim here is to find the density configuration $n(\mathbf{r})$ corresponding to the global minimum of the free energy $\mathcal{E}[n(\mathbf{r})]$.
+
+The geometry we consider is shown in supplementary Fig.~3a-b.
+There are four top gates a distance $d_t$ above the sample and one back gate a distance $d_b$ below, between which the space is filled by hBN with dielectric constant $\epsilon_{\perp} = 3$ and $\epsilon_{\|} = 6.6$ \cite{laturia_dielectric_2018}.
+The N/S gates and the E/W gates are shifted by $w_{NS}$ and $w_{EW}$, respectively, from the center (see supplementary Fig.~3a-b).
+We make an approximation by treating the cut-out ``X''-shaped region to define the gates as  a metal held at fixed voltage $V=0$ (rather than as a vacuum). 
+This allows us to analytically solve for the electrostatic Green's function and gate-induced potentials without resorting to e.g. COMSOL simulations.
+
+For a coarse-grained system with a finite resolution grid, the classical energy functional
+becomes
+\begin{equation}
+    \begin{aligned}
+	    \mathcal{E}[\{n(\mathbf{r})\}] &= \mathcal{E}_C + \mathcal{E}_{xc} + \mathcal{E}_{\Phi}\\
+	    \mathcal{E}_C &= \frac{1}{2 A} \sum_{\mathbf{q}} V(\mathbf{q}) n(\mathbf{q}) n(-\mathbf{q}) \\
+	    \mathcal{E}_{xc} &= \sum_{\mathbf{r}} E_{xc}(n(\mathbf{r})) \dif A,\\
+	    \mathcal{E}_{\Phi} &= \sum_{\mathbf{r}} \Phi(\mathbf{r}) n(\mathbf{r}) \dif A
+	\end{aligned}
+	\label{eq:energy_functional}
+\end{equation}
+where $\dif A = \dif x \dif y$ is the grid area, $A$ is the total area, and $n(\mathbf{q}) = \sum_{\mathbf{r}} e^{-i \mathbf{q} \cdot \mathbf{r}} n(\mathbf{r}) \dif A$.
+$\mathcal{E}_C$ is set by the gate-screened Coulomb interaction,
+\begin{equation}
+    V(\mathbf{q})= \frac{e^2}{4 \pi \epsilon_0 \epsilon_{\mathrm{hBN}}} \frac{4 \pi \sinh \left( \beta d_t|\mathbf{q}| \right) \sinh \left(\beta d_b|\mathbf{q}|\right)}{\sinh \left(\beta(d_t + d_b)|\mathbf{q}| \right) |\mathbf{q}|},
+    \label{eq:gate_potential}
+\end{equation}
+$\epsilon_{\mathrm{hBN}} = \sqrt{\epsilon_{\perp} \epsilon_{\|}}$ and $\beta = \sqrt{\epsilon_{\|} / \epsilon_{\perp}}$. 
+$\mathcal{E}_{\Phi}$ is the one body potential term arising from the potential $\Phi(\mathbf{r})$ on the sample due to the adjacent gates,
+\begin{equation}
+    \Phi(\mathbf{q}) = - e V_{t}(\mathbf{q}) \frac{\sinh(\beta d_b|\mathbf{q}|)}{\sinh(\beta(d_t + d_b)|\mathbf{q}|)} - e V_B \frac{d_t}{d_t + d_b} 
+\end{equation}
+where $V_{t}(\mathbf{q})$ is the top gate potential and $V_B$ is the back gate potential.
+
+The remaining energy $E_{xc}$ is defined by integrating the chemical potential $\mu$,
+\begin{equation}
+    E_{xc}(n) = \int_0^{n} \dif n' \mu(n').
+\end{equation}
+which  encodes information about the IQH and FQH gaps and the electron compressibility. For $\mu$ we use the experimentally  measured value obtained for monolayer graphene in the FQH regime ($B = 18 \, \si{T}$) we reported in an earlier work, Ref \cite{yang_experimental_2021}.
+
+Physically, $n(\mathbf{r})$ can only vary on the scale of the magnetic length $\ell_B$ due to the underlying quantum Hall wavefunction. 
+To capture this feature, we implement a square grid with periodic boundary conditions and meshing much finer than the scale of $\ell_B$,
+and then evaluate $\mathcal{E}$ with respect to the Gaussian convoluted density profile \footnote{We first use an unbounded range for $n(\mathbf{r})$ to determine the external potential that fix bulk filling $\nu_{EW} = 1$ and $\nu_{NS} = 0$. Then we constrain $n(\mathbf{r})$ to fall in between $\nu = 0$ and $\nu = 1$ such that any transition from $\tilde{\nu} = 0$ to $\tilde{\nu} = 1$ in $\tilde \nu(\mathbf{r})$ has a finite width of scale $\ell_B$.}
+\begin{equation}
+    \tilde n(\mathbf{r}) = \mathcal{N}^{-1}\sum_{\mathbf{r}'} n(\mathbf r') e^{-\abs{\mathbf{r} - \mathbf{r}'}^2 / 2\ell_B^2},
+\end{equation}
+where $\mathcal{N}$ is the corresponding normalization factor.
+We use a basin-hopping global optimizer with local L-BFGS-B minimization to vary $\{n(\mathbf{r})\}$ and find the lowest energy configuration.
+
+Within this framework, we tune the E/W gate potentials such that $\nu_{EW}=1$ deep in the bulk and the N/S gate potentials such that $\nu_{NS}=0$. 
+Various effects of reconstruction can then be explored by appropriately tuning the smoothness of the potential at the $\nu=0$ to $\nu=1$ interface (e.g. by tuning the channel width $w$, gate distances $d_{t,b}$ or gate voltages $\Phi_{g}$).
+
+
+
+\section{Extended Information on Interaction-Driven Quantum Dots}
+The Coulomb blockaded resonant structure is fairly ubiquitous in this device. Fig.~S\ref{fig:supp_saddle_point_dot} presents a series of several resonances which exhibit Coulomb blockade on the electron side of the device at 9T and 20mK.  Fig.~S\ref{fig:supp_saddle_point_dot}a shows the resonances in the ($V_{NS}$, $V_{EW}$) plane, where $\nu_{EW} \sim 3$ and $\nu_{NS} \sim 0$.  The chemical potential of the quantum dot is modulated directly with the N/S gates as $V_{NS}$ is swept along the dashed white line in Fig.~S\ref{fig:supp_saddle_point_dot}a.  Fig.~S\ref{fig:supp_saddle_point_dot}b shows the differential conductance as a function of $V_{NS}$ and $V_{SD}$ along this $V_{NS}$ trajectory along with the zero-bias cut.  
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width = 170mm]{sup_fig_saddle_point_dot.pdf}
+    \caption{\textbf{Coulomb blockaded resonances on the electron side.} All data in this figure was taken at B = 9T and T = 20mK.  \textbf{(a)} Two terminal conductance across the device plotted against $V_{NS}$ and $V_{EW}$.  \textbf{(b)} Differential conductance versus source-drain bias plotted along the white dashed line in (a) as well as the corresponding zero-bias line cut.  Along the white dashed line $\nu_{EW} = 3$ and $\nu_{NS} = 0$. \textbf{(c-d)} Two terminal conductance plotted against $V_{N(W)}$ and $V_{S(E)}$ for the Coulomb blockaded resonances marked by the white dashed line in (a). The primary resonance shown in (d) is demarcated by the white dot in (a). \textbf{(e-f)} Diagonal conductance across the device plotted against $V_{N(W)}$ and $V_{S(E)}$ for the transmission step between $G_D = 1$, and $G_D = 2$. } 
+    \label{fig:supp_saddle_point_dot}
+\end{figure*}
+
+The sharp peaks in Fig.~S\ref{fig:supp_saddle_point_dot}b have some finite curvature in the ($V_{SD}$, $V_{NS}$) plane. Since the slope here is a direct measure of $-C_{NS} / C_{\Sigma}$, where $C_{\Sigma}$ is the total capacitance of the dot, this indicates that as $V_{NS}$ is increased, the capacitance of the N/S gates to the dot is decreasing relative to $C_{\Sigma}$.  This is consistent with the dot being squeezed in the N/S direction as $V_{NS}$ is increased.  This can be further corroborated by the observation that as $V_{NS}$ is increased in Fig.~S\ref{fig:supp_saddle_point_dot}a, the slope of successive resonances decreases, indicating a decreased sensitivity to modulations in $V_{NS}$ -- i.e., $C_{EW} > C_{NS}$ as $V_{NS}$ increases.  Additionally, Fig.~S\ref{fig:supp_saddle_point_dot}c-d shows a representative resonance as as function of $V_N$ vs. $V_S$ as well as $V_E$ vs. $V_W$.  Much like the analysis in the main text (Fig.~2), when $V_N = V_S$ or $V_E = V_W$, the slope in the $V_N$/$V_S$ plane or the ($V_E$, $V_W$) plane is near $-1$, indicating the dot is roughly centered in the QPC.
+
+The behavior of a monotonic transition in $G_D$ as a function of $V_{N}$ vs. $V_{S}$ and $V_{E}$ vs. $V_{W}$ can be seen in Fig.~S\ref{fig:supp_saddle_point_dot}e-f.  It has been well established that monotonic steps in conductance at a quantum Hall QPC can be described by the scattering of electrons in a magnetic field at a saddle point potential \cite{floser_transmission_2010}.  Qualitatively, the behavior of the monotonic transmission step, and the Coulomb blockaded resonances in \ref{fig:supp_saddle_point_dot}c-d are similar; the monotonic transmission step and the resonance both have the same curvature in the ($V_N$, $V_S$) or ($V_E$, $V_W$) plane.  This further verifies the conclusion that the quantum dots are sitting on top of an externally applied potential which forms a saddle point, not a 2D well.
+
+\section{Thomas-Fermi calculation of the local density in the QPC}
+\label{app:TF_cal}
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.95\textwidth]{supp_TF_gate.pdf}
+    \caption{
+    \textbf{Effective model considered within the Thomas-Fermi framework.}
+    \textbf{(a)} Top-view of the gate setup, which involves four square gates labeled N,S,E, and W respectively, each of which is held at a potential denoted by $V_{N,S,E,W}$.
+    The back-gate (gray) is held at constant $V_B$.
+    We allow for the gate displacement from the center to be different for E/W and N/S gates.
+    \textbf{(b)}
+    Side-view of the gates reveals two distances $d_t$ and $d_b$ for the separation between the 2DEG and the top gate or bottom gate, respectively.
+    \textbf{(c)} 
+    The chemical potential $\mu$ and internal energy $E_\textrm{xc}$ derived from Ref.~\cite{yang_experimental_2021} which is taken as input data for the Thomas-Fermi calculation carried out here. 
+    }
+    \label{fig:tf_model_summary}
+\end{figure*}
+
+\subsection{Fractional Reconstruction}
+
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width = 120mm]{supp_TF_fractional_part2.pdf}
+    \caption{
+    \textbf{Extended reconstructed electron density profiles in a QPC geometry in the fractional regime}. 
+    (a-b) Fractional reconstruction in an integer bulk filling ($\nu=1$) with $E_C = \,46.4~\si{meV}$ in the regime where the confining potential is sharper than presented in main text Fig.~3a.
+    \textbf{(a)} With $E_V / E_C = 0.50$, the $\nu=\frac13$ island disappears and the $\nu=\frac13$ strips become narrower.
+    \textbf{(b)} With $E_V/E_C = 0.57$, the $\nu=\frac13$ strips disappear completely.
+    }
+    \label{fig:TF_fractional2}
+\end{figure*}
+
+To approximate the experimental device, we simulate a system with magnetic field $B = 13 \,\si{T}$ (magnetic length $\ell_B = 7\,\si{nm}$) \footnote{In the experiment \cite{yang_experimental_2021}, $\mu$ was obtained at $B = 18 \, \si{T}$, which introduces a difference in energy scale of $E_C$ by a factor of 1.19 relative to $B = 13 \, \si{T}$ at which we carry out our calculations}, gate distances $d_t = d_b = 30 \, \si{nm}$ and channel widths $w_{EW} = w_{NS} = 35\, \si{nm}$ on a $40 \ell_B \, \times \, 40 \ell_B$ system with gridsize $\dif x = \dif y = \tfrac14 \ell_B$ \footnote{It is advantageous to take a smaller $d_t$ here than the experimental $60 \,\si{nm}$ so that the necessary system size $L$, and hence the number of variational parameters in the optimization, remains tractable.}.
+
+For a finite system and mesh size, we find that edge reconstruction is most easily observed when $E_{xc}$  is increased by a factor of $1 - 2$  (for the data shown here, $E_{xc}$ is increased by 1.8x).  One possible origin of this discrepancy is screening from the filled LLs. 
+In Ref.~\cite{yang_experimental_2021} it was found the screening from virtual inter-LL  transitions (which is implicitly included in our $\mathcal{E}_{xc}$, since we use experimental data) reduces the IQH gaps, and hence features in $\mu$, by about a factor of 1.4 relative to their unscreened values.  However, our phenomenological model does \emph{not} account for inter-LL screening in the electrostatic contributions $\mathcal{E}_C$ and $\mathcal{E}_\Phi$. 
+Decreasing their scale relative to $E_{xc}$ can thus be interpreted as a very crude implementation of LL-screening in the remaining energy functionals. Of course other approximations are in play as well,  e.g. the local density approximation, so at the outset we do not expect more than phenomenological agreement with experiment. 
+
+At a translationally invariant boundary between $\nu=1$ to $\nu=0$, previous variational calculations have suggested edge-state reconstruction makes it energetically favorable to form an additional strip of $\nu=\tfrac13$ \cite{khanna_fractional_2021}.  However, in a QPC geometry where translation symmetry is broken, the effects of reconstruction are much richer and consequently require numerical treatment to fully characterize.  In Fig.~S6 of the main text, we demonstrate the effects of edge-reconstruction in a QPC as a function of the potential smoothness quantified by the ratio $E_V / E_C$.  To accomplish this, we fix $V_{NS} = -V_B$ and tune the smoothness of the confining potential via the relative magnitudes of $V_{EW}$ and $V_B$. 
+For the smallest value of $E_V / E_C$, we find in main text Fig.~3a reconstructed $\nu=\frac13$ strips which extend far enough into the QPC that they merge, corresponding to a fractional conductance across the QPC ($V_{EW}=0.51\,\si{V}$, $V_B=-0.19\,\si{V}$). With increasing $E_V / E_C$, in main text Fig.~3b the $\nu=\tfrac13$ strips become narrower and an island of fractional filling is formed in the center of the QPC ($V_{EW}=0.60\,\si{V}$, $V_B=-0.10\,\si{V}$).  As shown in Fig.~S\ref{fig:TF_fractional2}a, we confirmed upon further increasing $E_V / E_C$ ($V_{EW} = 0.61\,\si{V}$, $V_B=-0.09\,\si{V}$), the $\nu=\tfrac13$ strips become even narrower and the island disappears. For extremely sharp edges ($V_{EW}=0.70\,\si{V}$, $V_B=0.0\,\si{V}$), in Fig.~S\ref{fig:TF_fractional2}b the $\nu=\tfrac13$ strips disappear entirely leaving the expected density profile for a $\nu = 1$ edge everywhere in the QPC.
+
+We note that the $\nu=\tfrac13$ strips are smoothly connected to the bulk (i.e. not separated by a region of $\nu=0$) even for very smooth confining potentials, which is consistent with variational calculations which more accurately account for the energetics of $\nu=1$ to $\tfrac13$ edges beyond the local-density approximation \cite{khanna_fractional_2021}. 
+For a line cut taken directly across the $\nu=1$ to $\nu=0$ interface (e.g. between the east and north gates), the confining potential $\Phi_\textrm{ext}$ gives a confinement energy $E_V \approx 0.44 E_C$ and $0.49 E_C$ for the two scenarios in main text Fig.~3a-b respectively, and $0.50 E_C$ for the scenario where the island of fractional filling disappears (Fig.~S\ref{fig:TF_fractional2}a).
+The gate potentials reported here are slightly smaller than actual values used in the experiment. 
+In the experiment, the bulk filling far from the QPC can be as high as $\nu=\pm 4$ even though the local filling at the QPC will give $\nu=1$ to $\nu=0$ interfaces as we simulate here (see Fig.~1 of the main text).
+Since we simulate only the small region close to the QPC, the effective gate voltages we employ will necessarily reflect a smaller range than that of the experiment.
+
+In generic quantum Hall systems, it is widely believed that disorder and localized impurities are responsible for the formation of localized states in the QPC which facilitate resonant tunneling and are responsible for the non-monotinicity observed in conductance measurements across QPC transmission steps \cite{Milliken1996,Ando1998,Baer2014}. 
+In the device studied in this paper, we do not expect such disorder, and the localized states were attributed to an entirely intrinsic mechanism based purely on including the Coulomb interaction at the soft gate-defined edges of the QPC.  That picture is supported by our Thomas-Fermi calculations, where we have shown explicitly that the Coulomb interaction itself is sufficient to favor reconstruction of a local island.  We see then that by appropriate tuning of the gate voltages, one can reproduce a Coulomb blockade and fractional transmission in close approximation to the experimental findings of this report.
+
+\subsection{Integer Reconstruction}
+\begin{figure*}[ht!]
+    \centering
+    \includegraphics[width = 170mm]{supp_TF_integer.pdf}
+    \caption{
+    \textbf{Reconstructed electron density profiles in a QPC geometry in the integer reconstruction regime}. 
+    (a-c) Integer reconstruction in an integer bulk filling ($\nu=1$) with $E_C = \,11.6~\si{meV}$ as the confining potential smoothness is varied.
+    \textbf{(a)} With $E_V / E_C = 0.18$, the reconstructed $\nu=1$ stripes extend along the entire edge.
+    \textbf{(b)} With $E_V/E_C = 0.47$, the reconstructed $\nu=1$ stripes shrink to a single circular dot with $\nu=1$ in the center of the QPC.
+    \textbf{(c)} With $E_V/E_C = 0.55$, no reconstruction is observed.
+    }
+    \label{fig:TF_Integer}
+\end{figure*}
+
+Now we turn our attention to the possibility of reconstructed strips and islands with integer filling.  Integer reconstruction can be made more energetically favorable in the numerics by reducing the magnitude of $E_C$ such that redistributing integer charge along the edge out competes the energy gained from from forming a correlated FQH strip. Fixing $\ell_B$, $d_{t,b}$ and $w_{EW, NS}$ as before, we now take $E_C = \,11.6~\si{meV}$, and work on a system grid which is $40\ell_B \times 40 \ell_B$ large.
+
+In Fig.~S\ref{fig:TF_Integer}, we demonstrate edge-reconstruction as a function of the confining potential smoothness tuned via the gate voltages. For the smallest value of $E_V / E_C$, we find in Fig.~S\ref{fig:TF_Integer}a reconstructed $\nu=1$ strips that exist throughout the QPC,
+($V_{EW}=43.8\,\si{mV}$, $V_{NS}=107\,\si{mV}$, $V_B=107\,\si{mV}$).  With increasing $E_V / E_C$, in Fig.~S\ref{fig:TF_Integer}b the formation of an island of integer filling within the QPC ($V_{EW} = -143\,\si{mV}$, $V_{NS}=79.6\,\si{mV}$, $V_B=79.6\,\si{mV}$) is observed, and in Fig.\ref{fig:TF_Integer}c, for the largest value of $E_V/E_C$, a monotonic transition from $\nu = 0$ to $\nu = 1$ is recovered everywhere in the QPC ($V_{EW} = -167\,\si{mV}$, $V_{NS}=55.7\,\si{mV}$, $V_B=55.7\,\si{mV}$).
+
+In contrast to the $\nu=\frac13$ strips, the reconstructed $\nu=1$ strips in Fig.~S\ref{fig:TF_Integer}a are separated from the bulk by fully depleted regions, which is also consistent with variational calculations \cite{khanna_fractional_2021}. For a line cut taken directly across the $\nu=1$ to $\nu=0$ interface (e.g. between the east and north gates), the confining potential $\Phi_\textrm{ext}$ gives a confinement energy $E_V \approx 0.18 E_C, 0.47 E_C$ and $0.55 E_C$ for three scenarios Fig.~S\ref{fig:TF_Integer}a-c respectively. We leave a more detailed study of the interplay of integer and fractional reconstruction in this QPC geometry to future work.
+
+\section{Additional Experimental Evidence for Fractional Reconstruction at the QPC}
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width = 170mm]{supp_evidence_for_fractional_reconstruction.pdf}
+    \caption{\textbf{Evidence for fractional edge modes at the boundary of a bulk integer state:} \textbf{(a)} $G_D$ at a fixed $\nu_{EW} = -1$ versus $V_{NS} + \alpha V_B$ and $V_{B}$.  Here $V_{NS}$ is swept in a range dependent on $V_{B}$ such that the range $V_{NS} + \alpha V_B$ is kept fixed.  Additionally, as $V_B$ is swept, $V_{EW}$ is swept concomitantly to keep the bulk filling factor, set by $V_{EW} + \alpha V_B$, fixed at $\nu = -1$, but varying $V_{EW} - V_B$. 
+    The x-axis range corresponds to the full width of the $\nu=0$ plateau.  \textbf{(b)} The diagonal conductance map of the $\nu_{EW} = -1$ state at B=13T presented in panel (a) shows a number of features between $G_D = 1$ and $G_D = 0$. The statistical frequency of conductance values across the entire plot, reveals a number of sharp peaks corresponding to conductance plateaus between 0 and 1. The most prominent occurs at $G_D = 2/3$. A broader peak is observed near 1/3, though the quantization is less exact, and several further sharp peaks are seen centered near 0.2, 0.5, and 0.8. The origin of these peaks is unknown, and may be due to a more complicated reconstructed edge structure than is accounted for by any model discussed in this work. \textbf{(c)} Diagonal conductance map with the E/W regions in a fixed filling factor $\nu_{EW}=-2$ and N/S regions entirely within the $\nu_{NS}=0$ plateau. On the y-axis, the bottom gate and E/W gates are swept in opposite directions to vary $(V_B-V_{EW})$ while keeping $\nu_{EW} = -2$ fixed. On the x-axis, the N/S gates are swept across the entire $\nu=0$ plateau. \textbf{(d)} Line cut given in (c) showing two integer plateaus and an intermediate fractional plateau near $G_D = 1.33$ demarcated by the red lines.  In both (a) and (b) a correcting scale factor of $0.95$ is applied uniformly to $G_D$ to correct for a parallel conduction channel created in our device due to fringe doping from the Si gate, leading to over-quantized plateaus.  Here only one $e/3$ edge mode is observed, in contrast to the data at B = 13T where two $e/3$ modes are observed.  This is similar to previous reports in GaAs \cite{bhattacharyya_melting_2019}, however, the reason why one plateau is favored at low field compared to $B = 13T$ remains unclear.}
+    \label{fig:fqh_reconstruction}
+\end{figure*}
+In Fig.~\ref{fig:fqh_reconstruction} we present data demonstrating additional plateaus in transmission across the qpc while the bulk filling factor is kept in $\nu = 1$.  The presence of these plateaus provide strong evidence for the existence of an additional incompressible strip at fractional filling within the QPC at low values of $E_V / E_C$ consistent with our simulations.  
+
+
+\section{Experimental Realization of the Unreconstructed Limit of $\nu = 1$ Transmission at the QPC}
+\begin{figure*}[ht]
+    \includegraphics[width = 170mm]{supp_electrostatics_integer.pdf}
+    \caption{
+    \textbf{Signatures of reconstruction in $G$ between $\nu = 1$ edge modes.} 
+    \textbf{(a)} The conductance measured across the QPC with both the East and West regions in $\nu = 1$ at B = 8T. The East and West gate voltages are swept in the opposition direction of $V_{\text{BG}}$ along the y axis, through the range $V_\mathrm{EW} \in (0.6V, -2.191V)$, to maintain a fixed filling factor while varying the voltage difference and thereby the potential sharpness.
+    \textbf{(b)} The simulated electric potential at the monolayer, corresponding to the operating point I.
+    \textbf{(c)} Same as (b) but at the operating point II, where the potential is much softer.
+    \textbf{(d)} Simulated potential along the contours marked in grey and black in panels B and C, respectively. The softness is quantified by the maximum magnitude of the in-plane confining electric field, $E_{\parallel}$ (\textit{i.e.} simply the gradient of the potential normal to the boundary between the N(/S) and E(/W) regions).
+    \label{fig:electrostatics_integer}
+    }
+\end{figure*}
+In Fig.~\ref{fig:electrostatics_integer} we present data on a second device measured in \cite{cohen_universal_2023} which looks at the transmission as a function of potential sharpness for the $\nu = 1$ state.  Due to higher gate limits in this device, by applying a large voltage difference between the back-gate and the E/W gates, we were able to achieve the $E_V / E_C > 1$ limit.  In this limit the presence of spontaneously formed quantum dots from edge reconstruction begins to vanish and a single monotonic step from full pinch off to $G = e^2/h$ is recovered.
+
+\normalem
+\section{References}
+\bibliographystyle{custom}
+\bibliography{references, recon_bib}
+
+\end{document}
+
