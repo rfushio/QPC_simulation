@@ -1,2 +1,0 @@
-execution_time_seconds = 209.143745
-execution_time_minutes = 3.485729
