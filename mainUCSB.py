@@ -7,6 +7,8 @@ import numpy as np
 
 from solvers.solverUCSB import SimulationConfig, ThomasFermiSolver
 import matplotlib.pyplot as plt
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
 
 
 # -----------------------------------------------------------------------------
@@ -14,7 +16,7 @@ import matplotlib.pyplot as plt
 # -----------------------------------------------------------------------------
 
 # Grid resolution (square)
-GRID_N: int = 32
+GRID_N: int = 64
 
 # Physical / material parameters (inherited by solverUCSB)
 BASINHOPPING_NITER: int = 1
@@ -45,11 +47,10 @@ BAR_WIDTH_NM: float = 70
 # Gate voltages [V]
 # Simulate multiple pairs if desired
 V_NS_EW_PAIRS: list[tuple[float, float]] = [
-    (0.0796, -0.143),
+    (-0.19, 0.51),
 ]
-
 # Back-gate voltage [V]
-V_B: float = 0.0796
+V_B: float = 0.19
 # Thickness of the top BN and bottom BN[nm]
 D_T: float = 30.0 
 D_B: float = 30.0
@@ -59,7 +60,14 @@ POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
 
 # Optional scaling factor for XC potential
-XC_SCALE: float = 1.51
+XC_SCALE: float = 1.8
+
+# Progressive refinement (Matryoshka) toggle
+MATRYOSHKA: bool = False
+
+# Parallel execution across V_NS_EW_PAIRS
+PARALLEL: bool = False
+MAX_WORKERS: int = max(1, (os.cpu_count() or 2) - 1)
 
 
 # -----------------------------------------------------------------------------
@@ -168,6 +176,7 @@ def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
         exc_file="data/0-data/Exc_data_new.csv",
         solver_type="solverUCSB",
         exc_scale=XC_SCALE,
+        use_matryoshka=MATRYOSHKA,
     )
 
     solver = ThomasFermiSolver(cfg)
@@ -202,14 +211,28 @@ def main() -> None:
     batch_dir = date_dir / (timestamp + "_UCSB")
     batch_dir.mkdir(parents=True, exist_ok=True)
 
-    for i, (V_NS, V_EW) in enumerate(V_NS_EW_PAIRS):
-        pot_dir = batch_dir / f"case_{i:02d}"
-        pot_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            run_single(V_NS, V_EW, pot_dir)
-            print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}")
-        except Exception as e:
-            print(f"UCSB case {i} failed: {e}")
+    if not PARALLEL:
+        for i, (V_NS, V_EW) in enumerate(V_NS_EW_PAIRS):
+            pot_dir = batch_dir / f"case_{i:02d}"
+            pot_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                run_single(V_NS, V_EW, pot_dir)
+                print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}")
+            except Exception as e:
+                print(f"UCSB case {i} failed: {e}")
+    else:
+        futures = []
+        with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            for i, (V_NS, V_EW) in enumerate(V_NS_EW_PAIRS):
+                pot_dir = batch_dir / f"case_{i:02d}"
+                pot_dir.mkdir(parents=True, exist_ok=True)
+                futures.append((i, V_NS, V_EW, executor.submit(run_single, V_NS, V_EW, pot_dir)))
+            for i, V_NS, V_EW, fut in futures:
+                try:
+                    fut.result()
+                    print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}")
+                except Exception as e:
+                    print(f"UCSB case {i} failed: {e}")
 
     print(f"All UCSB simulations complete. Results stored in {batch_dir}")
 

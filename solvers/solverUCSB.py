@@ -20,14 +20,14 @@ Inputs:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional, Union, Any
 from pathlib import Path
 
 import numpy as np
 from scipy.fft import fft2, ifft2
 from scipy.optimize import basinhopping
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, RegularGridInterpolator
 
 
 # -----------------------------------------------------------------------------
@@ -82,6 +82,11 @@ class SimulationConfig:
 
     # Identification
     solver_type: str = "solverUCSB"
+
+    # Matryoshka progressive refinement (optional)
+    use_matryoshka: bool = False
+    matryoshka_min_N: int = 32
+    coarse_accept_limit: int = 1
 
 
 # -----------------------------------------------------------------------------
@@ -276,41 +281,177 @@ class ThomasFermiSolver:
     # Optimisation / post-processing
     # ------------------------------------------------------------------
     def optimise(self):
+        # ------------------------------------------------------------------
+        # Non-matryoshka path – preserve existing behaviour exactly
+        # ------------------------------------------------------------------
+        if not getattr(self.cfg, "use_matryoshka", False):
+            start_time = float(__import__("time").time())
+
+            self.energy_history: list[float] = [self.energy(self.nu0.copy())]
+
+            def _bh_callback(x, f, accept):
+                if accept:
+                    self.energy_history.append(float(f))
+
+            #bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
+            result = basinhopping(
+                self.energy,
+                self.nu0.copy(),
+                minimizer_kwargs={
+                    "method": "L-BFGS-B",
+                    #"bounds": bounds,
+                    "options": {
+                        "maxiter": self.cfg.lbfgs_maxiter,
+                        "maxfun": self.cfg.lbfgs_maxfun,
+                        "ftol": 1e-6,
+                        "eps": 1e-8,
+                    },
+                },
+                niter=self.cfg.niter,
+                stepsize=self.cfg.step_size,
+                disp=True,
+                callback=_bh_callback,
+            )
+
+            end_time = float(__import__("time").time())
+            self.execution_time = end_time - start_time
+
+            self.nu_opt = result.x.reshape((self.Nx, self.Ny))
+            self.nu_smoothed = self.gaussian_convolve(self.nu_opt)
+            self.optimisation_result = result
+            return result
+
+        # ------------------------------------------------------------------
+        # Matryoshka path – progressive grid refinement
+        # ------------------------------------------------------------------
         start_time = float(__import__("time").time())
 
-        self.energy_history: list[float] = [self.energy(self.nu0.copy())]
+        target_N: int = int(self.Nx)
+        min_N: int = int(max(2, self.cfg.matryoshka_min_N))
 
-        def _bh_callback(x, f, accept):
-            if accept:
-                self.energy_history.append(float(f))
+        # Build resolution ladder
+        if target_N <= min_N:
+            resolutions: list[int] = [target_N]
+        else:
+            resolutions = []
+            n = min_N
+            while n < target_N:
+                resolutions.append(n)
+                if n * 2 > target_N:
+                    resolutions.append(target_N)
+                    break
+                n *= 2
+            else:
+                if resolutions[-1] != target_N:
+                    resolutions.append(target_N)
 
-        bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
-        result = basinhopping(
-            self.energy,
-            self.nu0.copy(),
-            minimizer_kwargs={
-                "method": "L-BFGS-B",
-                "bounds": bounds,
-                "options": {
-                    "maxiter": self.cfg.lbfgs_maxiter,
-                    "maxfun": self.cfg.lbfgs_maxfun,
-                    "ftol": 1e-6,
-                    "eps": 1e-8,
-                },
-            },
-            niter=self.cfg.niter,
-            stepsize=self.cfg.step_size,
-            disp=True,
-            callback=_bh_callback,
-        )
+        self.energy_history = []
+
+        prev_nu: Optional[np.ndarray] = None  # type: ignore[name-defined]
+        prev_N: Optional[int] = None
+
+        for res in resolutions:
+            # Prepare stage config with resampled Vt (if provided)
+            if self.cfg.Vt_grid is not None:
+                vt_resampled = self._resample_square_grid(np.asarray(self.cfg.Vt_grid, dtype=float), res)
+            else:
+                vt_resampled = None
+
+            stage_cfg = replace(
+                self.cfg,
+                Nx=int(res),
+                Ny=int(res),
+                Vt_grid=vt_resampled,
+            )
+
+            stage_solver = ThomasFermiSolver(stage_cfg)
+
+            # Carry initial guess from previous stage if available
+            if prev_nu is not None and prev_N is not None:
+                stage_solver.nu0 = self._resample_square_grid(prev_nu, res).flatten()
+
+            # Initial energy and history
+            stage_solver.energy_history = [stage_solver.energy(stage_solver.nu0.copy())]
+
+            accepted_count = 0
+            _accepted_x: list[np.ndarray] = []  # keep track of accepted minima
+
+            class _EarlyStop(Exception):
+                pass
+
+            def _bh_callback(x, f, accept):
+                nonlocal accepted_count
+                if accept:
+                    accepted_count += 1
+                    _accepted_x.append(x.copy())
+                    stage_solver.energy_history.append(float(f))
+                    if (
+                        res < target_N
+                        and getattr(stage_solver.cfg, "coarse_accept_limit", 1) > 0
+                        and accepted_count >= getattr(stage_solver.cfg, "coarse_accept_limit", 1)
+                    ):
+                        raise _EarlyStop
+
+            #bounds = [(0.0, 1.0)] * (stage_solver.Nx * stage_solver.Ny)
+            try:
+                result = basinhopping(
+                    stage_solver.energy,
+                    stage_solver.nu0.copy(),
+                    minimizer_kwargs={
+                        "method": "L-BFGS-B",
+                        #"bounds": bounds,
+                        "options": {
+                            "maxiter": stage_solver.cfg.lbfgs_maxiter,
+                            "maxfun": stage_solver.cfg.lbfgs_maxfun,
+                            "ftol": 1e-6,
+                            "eps": 1e-8,
+                        },
+                    },
+                    niter=stage_solver.cfg.niter,
+                    stepsize=stage_solver.cfg.step_size,
+                    disp=False,
+                    callback=_bh_callback,
+                )
+            except _EarlyStop:
+                result = None
+
+            if result is not None:
+                best_x = result.x
+            else:
+                # If early-stopped before any accept, keep initial; otherwise, use last accepted
+                if _accepted_x:
+                    best_x = _accepted_x[-1]
+                else:
+                    best_x = stage_solver.nu0.copy()
+
+            stage_solver.nu_opt = best_x.reshape((stage_solver.Nx, stage_solver.Ny))
+            stage_solver.nu_smoothed = stage_solver.gaussian_convolve(stage_solver.nu_opt)
+
+            # Aggregate – avoid duplicating last energy between stages
+            if res == target_N:
+                self.energy_history.extend(stage_solver.energy_history)
+            else:
+                self.energy_history.extend(stage_solver.energy_history[:-1])
+
+            # Prepare next stage
+            prev_nu = stage_solver.nu_opt
+            prev_N = res
+
+            # If final stage, copy back to self
+            if res == target_N:
+                self.__dict__.update(stage_solver.__dict__)
+                if result is not None:
+                    self.optimisation_result = result
+                else:
+                    self.optimisation_result = {
+                        "N": target_N,
+                        "fun": float(self.energy(self.nu_opt.flatten())),
+                    }
+                break
 
         end_time = float(__import__("time").time())
         self.execution_time = end_time - start_time
-
-        self.nu_opt = result.x.reshape((self.Nx, self.Ny))
-        self.nu_smoothed = self.gaussian_convolve(self.nu_opt)
-        self.optimisation_result = result
-        return result
+        return getattr(self, "optimisation_result")
 
     # ------------------------------------------------------------------
     # Override plotting: use magnetic-length units (l_B) on axes
@@ -346,10 +487,10 @@ class ThomasFermiSolver:
             self.nu_smoothed.T,
             extent=extent_lB,
             origin="lower",
-            cmap="inferno",
+            cmap="viridis",
             aspect="auto",
-            #vmin=0.0,
-            #vmax=1.0,
+            #vmin=-0.10,
+            #vmax= 1.1,
         )
         base_title = "Optimised Filling Factor ν(r)"
         # Always annotate with back-gate voltage for clarity
@@ -409,7 +550,7 @@ class ThomasFermiSolver:
         color2 = "tab:blue"
         ln2 = ax2.plot(x_over_lB, nu_line, color=color2, linewidth=2.0, label="ν")
         ax2.set_ylabel("ν", color=color2)
-        ax2.set_ylim(0.0, 1.0)
+        #ax2.set_ylim(0.0, 1.0)
         ax2.tick_params(axis="y", labelcolor=color2)
 
         lines = ln1 + ln2
@@ -515,6 +656,24 @@ class ThomasFermiSolver:
 
         fig.savefig(out_dir / "energy_decrease.png", dpi=300, bbox_inches="tight")
         _plt.close(fig)
+
+    # ------------------------------------------------------------------
+    # Helper: resample square fields (ν or V_t) to new N×N using bilinear
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _resample_square_grid(field: np.ndarray, new_N: int) -> np.ndarray:
+        field = np.asarray(field, dtype=float)
+        old_nx, old_ny = field.shape
+        if old_nx == new_N and old_ny == new_N:
+            return field.copy()
+        src_x = np.linspace(0.0, 1.0, old_nx)
+        src_y = np.linspace(0.0, 1.0, old_ny)
+        rgi = RegularGridInterpolator((src_x, src_y), field, bounds_error=False, fill_value=None)
+        tgt = np.linspace(0.0, 1.0, new_N)
+        X_new, Y_new = np.meshgrid(tgt, tgt, indexing="ij")
+        pts = np.stack([X_new, Y_new], axis=-1)
+        out = rgi(pts)
+        return np.asarray(out, dtype=float)
 
 
 # Convenience aliases (match repository style)
