@@ -284,13 +284,13 @@ class ThomasFermiSolver:
             if accept:
                 self.energy_history.append(float(f))
 
-        #bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
+        bounds = [(0.0, 1.0)] * (self.Nx * self.Ny)
         result = basinhopping(
             self.energy,
             self.nu0.copy(),
             minimizer_kwargs={
                 "method": "L-BFGS-B",
-                #"bounds": bounds,
+                "bounds": bounds,
                 "options": {
                     "maxiter": self.cfg.lbfgs_maxiter,
                     "maxfun": self.cfg.lbfgs_maxfun,
@@ -348,12 +348,14 @@ class ThomasFermiSolver:
             origin="lower",
             cmap="inferno",
             aspect="auto",
-            vmin=0.0,
-            vmax=1.0,
+            #vmin=0.0,
+            #vmax=1.0,
         )
         base_title = "Optimised Filling Factor ν(r)"
+        # Always annotate with back-gate voltage for clarity
+        base_title += f"\nV_B={self.cfg.V_B:+.3f} V"
         if title_extra:
-            base_title += f"\n{title_extra}"
+            base_title += f"  |  {title_extra}"
         _plt.title(base_title)
         _plt.xlabel("x [l_B]")
         _plt.ylabel("y [l_B]")

@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 GRID_N: int = 32
 
 # Physical / material parameters (inherited by solverUCSB)
-BASINHOPPING_NITER: int = 10
-BASINHOPPING_STEP_SIZE: float = 1.0
+BASINHOPPING_NITER: int = 1
+BASINHOPPING_STEP_SIZE: float = 0.1
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 
@@ -42,15 +42,14 @@ Y_MAX_NM: float = +HALF_SPAN_M * 1e9
 
 # X-shaped bar width in nm
 BAR_WIDTH_NM: float = 70
-
 # Gate voltages [V]
 # Simulate multiple pairs if desired
 V_NS_EW_PAIRS: list[tuple[float, float]] = [
-    (0.19, 0.51),
+    (0.0796, -0.143),
 ]
 
 # Back-gate voltage [V]
-V_B: float = -0.19
+V_B: float = 0.0796
 # Thickness of the top BN and bottom BN[nm]
 D_T: float = 30.0 
 D_B: float = 30.0
@@ -60,7 +59,7 @@ POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
 
 # Optional scaling factor for XC potential
-XC_SCALE: float = 1.5
+XC_SCALE: float = 1.51
 
 
 # -----------------------------------------------------------------------------
