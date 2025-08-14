@@ -23,7 +23,7 @@ COUNT=$(python mainUCSB_Cluster.py --get-count)
 
 # Create a single batch folder for the whole array (only for the first task)
 if [ -z "$BATCH_FOLDER" ]; then
-  export BATCH_FOLDER="analysis_folder_cluster/$(date +%Y%m%d_%H%M%S)_batch"
+  export BATCH_FOLDER="analysis_folder_Cluster/$(date +%Y%m%d_%H%M%S)_batch"
 fi
 mkdir -p "$BATCH_FOLDER"
 
