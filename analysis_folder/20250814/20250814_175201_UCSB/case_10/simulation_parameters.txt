@@ -1,0 +1,44 @@
+e = 1.602e-19
+epsilon_0 = 8.854e-12
+h = 6.62607015e-34
+B = 3.0
+dt = 3.0000000000000004e-08
+db = 3.0000000000000004e-08
+epsilon_perp = 3.0
+epsilon_parallel = 6.6
+exc_file = data/0-data/Exc_data_new.csv
+exc_scale = 1.8
+niter = 10
+step_size = 0.5
+lbfgs_maxiter = 1000
+lbfgs_maxfun = 2000000
+Nx = 64
+Ny = 64
+x_min_nm = -142.2
+x_max_nm = 142.2
+y_min_nm = -142.2
+y_max_nm = 142.2
+V_B = 0.08
+Vt_grid = [[0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+v_ns = -0.07733333333333334
+v_ew = 0.05566666666666667
+potential_scale = 1.0
+potential_offset = 0.0
+solver_type = solverUCSB
+use_matryoshka = False
+matryoshka_min_N = 32
+coarse_accept_limit = 1
+
+# Execution time
+execution_time_seconds = 5957.966897
+execution_time_minutes = 99.299448
+
+# Execution time
+execution_time_seconds = 5957.967490
+execution_time_minutes = 99.299458
