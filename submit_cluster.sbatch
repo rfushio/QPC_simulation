@@ -14,9 +14,21 @@ mkdir -p slurm_logs
 
 # --- Environment Setup (MODIFY FOR YOUR CLUSTER) ---
 # module load python/3.11.5-fasrc01
-# module load anaconda3/2023.09-fasrc01
-module load python
-source /n/home04/rfushio/.venvs/python_env1/bin/activate
+module purge
+# conda/mamba を使うなら必須
+module load mamba/latest
+
+# conda 初期化（どちらか1つでOK）
+# 1) 推奨: シェルフック経由で確実に有効化
+eval "$(conda shell.bash hook)"
+# 2) もし .bashrc に conda init 済みなら：
+# source ~/.bashrc
+
+conda activate python_env1
+# venv を使うなら:
+# source /n/home04/rfushio/.venvs/python_env1/bin/activate
+
+cd /n/home04/rfushio/Main/Thomas_Fermi/QPC_simulation
 
 # Dynamically determine the number of tasks from the Python script (reads COMBOS_* env if set)
 COUNT=$(python mainUCSB_Cluster.py --get-count)
