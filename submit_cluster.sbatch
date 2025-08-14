@@ -16,7 +16,7 @@ mkdir -p slurm_logs
 # module load python/3.11.5-fasrc01
 # module load anaconda3/2023.09-fasrc01
 module load python
-mamba activate python_env1
+source /n/home04/rfushio/.venvs/python_env1/bin/activate
 
 # Dynamically determine the number of tasks from the Python script (reads COMBOS_* env if set)
 COUNT=$(python mainUCSB_Cluster.py --get-count)
