@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # BASE CONFIGURATION (Copied from mainUCSB.py)
 # -----------------------------------------------------------------------------
 
-GRID_N: int = 64
+GRID_N: int = 128
 BASINHOPPING_NITER: int = 10
 BASINHOPPING_STEP_SIZE: float = 0.5
 LBFGS_MAXITER: int = 1000
@@ -28,7 +28,7 @@ D_T: float = 30.0
 D_B: float = 30.0
 POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
-XC_SCALE: float = 1.8
+XC_SCALE: float = 1.51
 MATRYOSHKA: bool = False
 
 def magnetic_length_m(B_T: float) -> float:
