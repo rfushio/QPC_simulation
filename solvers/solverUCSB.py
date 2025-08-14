@@ -75,6 +75,9 @@ class SimulationConfig:
     # External top/back gate settings
     V_B: float = 0.0
     Vt_grid: Optional[np.ndarray] = None
+    # Convenience: store the scalar gate values used to build Vt (if applicable)
+    v_ns: Optional[float] = None
+    v_ew: Optional[float] = None
 
     # Additional potential scaling/offset (kept for flexibility)
     potential_scale: float = 1.0
@@ -493,8 +496,6 @@ class ThomasFermiSolver:
             #vmax= 1.1,
         )
         base_title = "Optimised Filling Factor ν(r)"
-        # Always annotate with back-gate voltage for clarity
-        base_title += f"\nV_B={self.cfg.V_B:+.3f} V"
         if title_extra:
             base_title += f"  |  {title_extra}"
         _plt.title(base_title)

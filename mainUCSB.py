@@ -16,16 +16,16 @@ import os
 # -----------------------------------------------------------------------------
 
 # Grid resolution (square)
-GRID_N: int = 64
+GRID_N: int = 32
 
 # Physical / material parameters (inherited by solverUCSB)
-BASINHOPPING_NITER: int = 1
+BASINHOPPING_NITER: int = 5
 BASINHOPPING_STEP_SIZE: float = 0.1
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 
 # Magnetic field and magnetic length based domain (total size = 40 l_B)
-B_FIELD_T: float = 13.0  # Tesla
+B_FIELD_T: float = 3.0  # Tesla
 
 def magnetic_length_m(B_T: float) -> float:
     # l_B = sqrt(h / (2π e B))
@@ -34,6 +34,7 @@ def magnetic_length_m(B_T: float) -> float:
     return float(np.sqrt(h / (2.0 * np.pi * e * B_T)))
 
 L_B_M: float = magnetic_length_m(B_FIELD_T)
+L_B_M = 7.11e-9
 HALF_SPAN_M: float = 20.0 * L_B_M  # half of 40 l_B
 
 # Domain bounds in nm derived from l_B
@@ -45,12 +46,20 @@ Y_MAX_NM: float = +HALF_SPAN_M * 1e9
 # X-shaped bar width in nm
 BAR_WIDTH_NM: float = 70
 # Gate voltages [V]
-# Simulate multiple pairs if desired
-V_NS_EW_PAIRS: list[tuple[float, float]] = [
-    (-0.19, 0.51),
+# Simulate multiple sets (V_NS, V_EW, V_B) – 3-tuple required per case
+# Generate 100 cases: V_NS ∈ [-0.15, -0.05] (10 pts), V_EW ∈ [0.04, 0.17] (10 pts), with V_B = -V_NS
+_vns_values = np.linspace(-0.090, -0.060, 10)
+_vew_values = np.linspace(0.040, 0.100, 10)
+_vb_values = np.linspace(0.060, 0.075, 10)
+vew=0.040
+vns=-0.060
+V_NS_EW_PAIRS: list[tuple[float, float, float]] = [
+    (vns, vew, float(vb))
+    for vb in _vb_values
+    #for vew in _vew_values
 ]
-# Back-gate voltage [V]
-V_B: float = 0.19
+# Back-gate voltage [V] (kept for compatibility; not used when running cases)
+V_B: float = 0.107
 # Thickness of the top BN and bottom BN[nm]
 D_T: float = 30.0 
 D_B: float = 30.0
@@ -66,7 +75,7 @@ XC_SCALE: float = 1.8
 MATRYOSHKA: bool = False
 
 # Parallel execution across V_NS_EW_PAIRS
-PARALLEL: bool = False
+PARALLEL: bool = True
 MAX_WORKERS: int = max(1, (os.cpu_count() or 2) - 1)
 
 
@@ -124,7 +133,7 @@ def build_vt_grid(
 # Single-run helper
 # -----------------------------------------------------------------------------
 
-def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
+def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None:
     # Build Vt grid first
     vt_grid = build_vt_grid(
         GRID_N,
@@ -148,7 +157,7 @@ def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
     plt.figure(figsize=(5.5, 5))
     im = plt.imshow(vt_grid.T, origin="lower", extent=extent_lB, cmap="coolwarm", aspect="auto")
     plt.colorbar(im, label="V_t [V]")
-    plt.title(f"V_t grid (V_NS={V_NS:+.2f} V, V_EW={V_EW:+.2f} V)")
+    plt.title(f"V_t grid (V_NS={V_NS:+.3f} V, V_EW={V_EW:+.3f} V, V_B={float(V_B_case):+.3f} V)")
     plt.xlabel("x [l_B]")
     plt.ylabel("y [l_B]")
     plt.tight_layout()
@@ -159,10 +168,12 @@ def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
         Nx=GRID_N,
         Ny=GRID_N,
         B=B_FIELD_T,
-        V_B=V_B,
+        V_B=float(V_B_case),
         dt=D_T*1e-9,
         db=D_B*1e-9,
         Vt_grid=vt_grid,
+        v_ns=float(V_NS),
+        v_ew=float(V_EW),
         x_min_nm=X_MIN_NM,
         x_max_nm=X_MAX_NM,
         y_min_nm=Y_MIN_NM,
@@ -190,7 +201,7 @@ def run_single(V_NS: float, V_EW: float, out_dir: Path) -> None:
     solver.optimise()
     exec_sec = time.time() - t0
 
-    title_extra = f"V_NS={V_NS:+.2f} V, V_EW={V_EW:+.2f} V"
+    title_extra = f"V_NS={V_NS:+.3f} V, V_EW={V_EW:+.3f} V, V_B={float(V_B_case):+.3f} V"
     solver.plot_results(save_dir=str(out_dir), title_extra=title_extra, show=False)
     solver.save_results(out_dir)
 
@@ -212,25 +223,31 @@ def main() -> None:
     batch_dir.mkdir(parents=True, exist_ok=True)
 
     if not PARALLEL:
-        for i, (V_NS, V_EW) in enumerate(V_NS_EW_PAIRS):
+        for i, entry in enumerate(V_NS_EW_PAIRS):
+            if len(entry) != 3:
+                raise ValueError("Each entry in V_NS_EW_PAIRS must be a 3-tuple: (V_NS, V_EW, V_B)")
+            V_NS, V_EW, V_Bi = entry
             pot_dir = batch_dir / f"case_{i:02d}"
             pot_dir.mkdir(parents=True, exist_ok=True)
             try:
-                run_single(V_NS, V_EW, pot_dir)
-                print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}")
+                run_single(V_NS, V_EW, V_Bi, pot_dir)
+                print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}")
             except Exception as e:
                 print(f"UCSB case {i} failed: {e}")
     else:
         futures = []
         with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            for i, (V_NS, V_EW) in enumerate(V_NS_EW_PAIRS):
+            for i, entry in enumerate(V_NS_EW_PAIRS):
+                if len(entry) != 3:
+                    raise ValueError("Each entry in V_NS_EW_PAIRS must be a 3-tuple: (V_NS, V_EW, V_B)")
+                V_NS, V_EW, V_Bi = entry
                 pot_dir = batch_dir / f"case_{i:02d}"
                 pot_dir.mkdir(parents=True, exist_ok=True)
-                futures.append((i, V_NS, V_EW, executor.submit(run_single, V_NS, V_EW, pot_dir)))
-            for i, V_NS, V_EW, fut in futures:
+                futures.append((i, V_NS, V_EW, V_Bi, executor.submit(run_single, V_NS, V_EW, V_Bi, pot_dir)))
+            for i, V_NS, V_EW, V_Bi, fut in futures:
                 try:
                     fut.result()
-                    print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}")
+                    print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}")
                 except Exception as e:
                     print(f"UCSB case {i} failed: {e}")
 
