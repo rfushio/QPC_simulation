@@ -16,7 +16,7 @@ mkdir -p slurm_logs
 # module load python/3.11.5-fasrc01
 module purge
 # conda/mamba を使うなら必須
-module load mamba/latest
+module load python/3.12.2-fasrc01
 
 # conda 初期化（どちらか1つでOK）
 # 1) 推奨: シェルフック経由で確実に有効化
@@ -24,7 +24,7 @@ eval "$(conda shell.bash hook)"
 # 2) もし .bashrc に conda init 済みなら：
 # source ~/.bashrc
 
-conda activate python_env1
+mamba activate python_env1
 # venv を使うなら:
 # source /n/home04/rfushio/.venvs/python_env1/bin/activate
 
