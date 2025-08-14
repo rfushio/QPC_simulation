@@ -16,11 +16,11 @@ import os
 # -----------------------------------------------------------------------------
 
 # Grid resolution (square)
-GRID_N: int = 32
+GRID_N: int = 64
 
 # Physical / material parameters (inherited by solverUCSB)
-BASINHOPPING_NITER: int = 5
-BASINHOPPING_STEP_SIZE: float = 0.1
+BASINHOPPING_NITER: int = 10
+BASINHOPPING_STEP_SIZE: float = 0.5
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 
@@ -48,16 +48,18 @@ BAR_WIDTH_NM: float = 70
 # Gate voltages [V]
 # Simulate multiple sets (V_NS, V_EW, V_B) – 3-tuple required per case
 # Generate 100 cases: V_NS ∈ [-0.15, -0.05] (10 pts), V_EW ∈ [0.04, 0.17] (10 pts), with V_B = -V_NS
-_vns_values = np.linspace(-0.020, -0.0, 10)
-_vew_values = np.linspace(0.040, 0.070, 10)
+#_vns_values = np.linspace(-0.040, -0.020, 10)
+#_vew_values = np.linspace(0.030, 0.040, 4)
 #vb_values = np.linspace(0.060, 0.090, 20)
-#vew=0.090
-#vns=0.0
-vb=0.085
+#vew=0.043
+#vns=-0.040
+#vb=0.085
 V_NS_EW_PAIRS: list[tuple[float, float, float]] = [
-    (float(vns), float(vew), float(vb))
-    for vns in _vns_values
-    for vew in _vew_values
+    (-0.040,0.040,0.085),(0.0,0.090,0.073),(-0.080,0.053,0.080),
+    (-0.041,0.041,0.085),(0.0,0.091,0.073),(-0.081,0.051,0.080),
+    (-0.039,0.039,0.085),(0.0,0.089,0.073),(-0.079,0.052,0.080)
+    #for vns in _vns_values
+    #for vew in _vew_values
     #for vb in _vb_values
 ]
 # Back-gate voltage [V] (kept for compatibility; not used when running cases)
