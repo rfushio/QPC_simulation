@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/n/home04/rfushio/Main/Thomas_Fermi/QPC_simulation/mainUCSB_Cluster.py", line 10, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+Traceback (most recent call last):
+  File "/n/home04/rfushio/Main/Thomas_Fermi/QPC_simulation/mainUCSB_Cluster.py", line 10, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
