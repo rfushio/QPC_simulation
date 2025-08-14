@@ -48,15 +48,17 @@ BAR_WIDTH_NM: float = 70
 # Gate voltages [V]
 # Simulate multiple sets (V_NS, V_EW, V_B) – 3-tuple required per case
 # Generate 100 cases: V_NS ∈ [-0.15, -0.05] (10 pts), V_EW ∈ [0.04, 0.17] (10 pts), with V_B = -V_NS
-_vns_values = np.linspace(-0.090, -0.060, 10)
-_vew_values = np.linspace(0.040, 0.100, 10)
-_vb_values = np.linspace(0.060, 0.075, 10)
-vew=0.040
-vns=-0.060
+_vns_values = np.linspace(-0.020, -0.0, 10)
+_vew_values = np.linspace(0.040, 0.070, 10)
+#vb_values = np.linspace(0.060, 0.090, 20)
+#vew=0.090
+#vns=0.0
+vb=0.085
 V_NS_EW_PAIRS: list[tuple[float, float, float]] = [
-    (vns, vew, float(vb))
-    for vb in _vb_values
-    #for vew in _vew_values
+    (float(vns), float(vew), float(vb))
+    for vns in _vns_values
+    for vew in _vew_values
+    #for vb in _vb_values
 ]
 # Back-gate voltage [V] (kept for compatibility; not used when running cases)
 V_B: float = 0.107
