@@ -16,7 +16,7 @@ mkdir -p slurm_logs
 # module load python/3.11.5-fasrc01
 module purge
 # conda/mamba を使うなら必須
-module load python/3.12.2-fasrc01
+module load python
 
 # conda 初期化（どちらか1つでOK）
 # 1) 推奨: シェルフック経由で確実に有効化
