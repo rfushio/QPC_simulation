@@ -34,3 +34,7 @@ solver_type = solverUCSB
 use_matryoshka = False
 matryoshka_min_N = 32
 coarse_accept_limit = 1
+
+# Execution time
+execution_time_seconds = 10967.138083
+execution_time_minutes = 182.785635

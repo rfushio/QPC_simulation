@@ -1,0 +1,26 @@
+--- Starting Task ID: 3 ---
+Parameters: V_NS=-0.081, V_EW=+0.051, V_B=+0.080
+Output directory: analysis_folder_Cluster/20250814_170001_batch/case_003
+warning: basinhopping: local minimization failure
+basinhopping step 0: f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 1: f 220.065 trial_f 220.065 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 2: f 219.262 trial_f 219.262 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 3: f 218.637 trial_f 218.637 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 4: f 218.064 trial_f 218.064 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 5: f 217.834 trial_f 217.834 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 6: f 217.58 trial_f 217.58 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 7: f 217.232 trial_f 217.232 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 8: f 216.846 trial_f 216.846 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 9: f 216.508 trial_f 216.508 accepted True lowest_f 221.283
+warning: basinhopping: local minimization failure
+basinhopping step 10: f 216.189 trial_f 216.189 accepted True lowest_f 221.283
+--- Finished Task ID: 3 ---
