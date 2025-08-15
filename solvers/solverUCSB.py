@@ -395,14 +395,12 @@ class ThomasFermiSolver:
                     ):
                         raise _EarlyStop
 
-            #bounds = [(0.0, 1.0)] * (stage_solver.Nx * stage_solver.Ny)
             try:
                 result = basinhopping(
                     stage_solver.energy,
                     stage_solver.nu0.copy(),
                     minimizer_kwargs={
                         "method": "L-BFGS-B",
-                        #"bounds": bounds,
                         "options": {
                             "maxiter": stage_solver.cfg.lbfgs_maxiter,
                             "maxfun": stage_solver.cfg.lbfgs_maxfun,
@@ -640,9 +638,16 @@ class ThomasFermiSolver:
         ax1.tick_params(axis="y", labelcolor="tab:blue")
 
         ax2 = ax1.twinx()
-        ax2.set_ylabel("Energy decrease [meV]", color="tab:red")
-        ax2.bar(iterations[1:], delta_E[1:], color="tab:red", alpha=0.4, label="ΔEnergy (iter≥2)")
-        ax2.tick_params(axis="y", labelcolor="tab:red")
+        ax2.set_ylabel("Energy decrease [meV]")
+        # Color code by sign: decrease (ΔE>0) green, increase (ΔE<0) red, flat gray
+        de_vals = delta_E[1:]
+        x_vals = iterations[1:]
+        colors = [
+            ("tab:green" if v > 0 else ("tab:red" if v < 0 else "0.6"))
+            for v in de_vals
+        ]
+        ax2.bar(x_vals, de_vals, color=colors, alpha=0.6)
+        ax2.tick_params(axis="y")
 
         fig.tight_layout()
 
@@ -650,9 +655,12 @@ class ThomasFermiSolver:
         l, lab = ax1.get_legend_handles_labels()
         lines.extend(l)
         labels.extend(lab)
-        l2, lab2 = ax2.get_legend_handles_labels()
-        lines.extend(l2)
-        labels.extend(lab2)
+        # Add proxy legend entries for bar colors
+        from matplotlib.patches import Patch as _Patch
+        lines.append(_Patch(color="tab:green", alpha=0.6))
+        labels.append("ΔE > 0 (decrease)")
+        lines.append(_Patch(color="tab:red", alpha=0.6))
+        labels.append("ΔE < 0 (increase)")
         fig.legend(lines, labels, loc="upper right")
 
         fig.savefig(out_dir / "energy_decrease.png", dpi=300, bbox_inches="tight")

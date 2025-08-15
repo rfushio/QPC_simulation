@@ -15,17 +15,20 @@ import os
 # USER CONFIGURATION
 # -----------------------------------------------------------------------------
 
+# Toggle output directory for Windows
+WINDOWS: bool = False
+
 # Grid resolution (square)
-GRID_N: int = 64
+GRID_N: int = 32
 
 # Physical / material parameters (inherited by solverUCSB)
-BASINHOPPING_NITER: int = 10
+BASINHOPPING_NITER: int = 30
 BASINHOPPING_STEP_SIZE: float = 0.5
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 
 # Magnetic field and magnetic length based domain (total size = 40 l_B)
-B_FIELD_T: float = 3.0  # Tesla
+B_FIELD_T: float = 13.0  # Tesla
 
 def magnetic_length_m(B_T: float) -> float:
     # l_B = sqrt(h / (2π e B))
@@ -48,16 +51,16 @@ BAR_WIDTH_NM: float = 70
 # Gate voltages [V]
 # Simulate multiple sets (V_NS, V_EW, V_B) – 3-tuple required per case
 # Generate 100 cases: V_NS ∈ [-0.15, -0.05] (10 pts), V_EW ∈ [0.04, 0.17] (10 pts), with V_B = -V_NS
-_vns_values = np.linspace(-0.080, -0.076, 4)
-_vew_values = np.linspace(0.053, 0.057, 4)
+#_vns_values = np.linspace(-0.080, -0.076, 4)
+#_vew_values = np.linspace(0.053, 0.057, 4)
 #vb_values = np.linspace(0.060, 0.090, 20)
-#vew=0.043
-#vns=-0.040
-vb=0.080
+vew=0.60
+vns=-0.10
+vb=0.10
 V_NS_EW_PAIRS: list[tuple[float, float, float]] = [
     (float(vns), float(vew), float(vb))
-    for vns in _vns_values
-    for vew in _vew_values
+    #for vns in _vns_values
+    #for vew in _vew_values
     #for vb in _vb_values
 ]
 # Back-gate voltage [V] (kept for compatibility; not used when running cases)
@@ -71,7 +74,8 @@ POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
 
 # Optional scaling factor for XC potential
-XC_SCALE: float = 1.8
+# Support multiple values; all combinations with V_NS_EW_PAIRS will be run
+XC_SCALES: list[float] = [1.51,1.57,1.63,1.69,1.75,1.81]
 
 # Progressive refinement (Matryoshka) toggle
 MATRYOSHKA: bool = False
@@ -135,7 +139,7 @@ def build_vt_grid(
 # Single-run helper
 # -----------------------------------------------------------------------------
 
-def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None:
+def run_single(V_NS: float, V_EW: float, V_B_case: float, xc_scale: float, out_dir: Path) -> None:
     # Build Vt grid first
     vt_grid = build_vt_grid(
         GRID_N,
@@ -188,7 +192,7 @@ def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None
         potential_offset=POTENTIAL_OFFSET,
         exc_file="data/0-data/Exc_data_new.csv",
         solver_type="solverUCSB",
-        exc_scale=XC_SCALE,
+        exc_scale=float(xc_scale),
         use_matryoshka=MATRYOSHKA,
     )
 
@@ -203,7 +207,7 @@ def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None
     solver.optimise()
     exec_sec = time.time() - t0
 
-    title_extra = f"V_NS={V_NS:+.3f} V, V_EW={V_EW:+.3f} V, V_B={float(V_B_case):+.3f} V"
+    title_extra = f"V_NS={V_NS:+.3f} V, V_EW={V_EW:+.3f} V, V_B={float(V_B_case):+.3f} V, XC={float(xc_scale):.3f}"
     solver.plot_results(save_dir=str(out_dir), title_extra=title_extra, show=False)
     solver.save_results(out_dir)
 
@@ -215,7 +219,7 @@ def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None
 
 def main() -> None:
     # Prepare output directories
-    base_dir = Path("analysis_folder")
+    base_dir = Path("analysis_folder_windows" if WINDOWS else "analysis_folder")
     today = datetime.now().strftime("%Y%m%d")
     date_dir = base_dir / today
     date_dir.mkdir(parents=True, exist_ok=True)
@@ -225,31 +229,37 @@ def main() -> None:
     batch_dir.mkdir(parents=True, exist_ok=True)
 
     if not PARALLEL:
-        for i, entry in enumerate(V_NS_EW_PAIRS):
+        idx = 0
+        for entry in V_NS_EW_PAIRS:
             if len(entry) != 3:
                 raise ValueError("Each entry in V_NS_EW_PAIRS must be a 3-tuple: (V_NS, V_EW, V_B)")
             V_NS, V_EW, V_Bi = entry
-            pot_dir = batch_dir / f"case_{i:02d}"
-            pot_dir.mkdir(parents=True, exist_ok=True)
-            try:
-                run_single(V_NS, V_EW, V_Bi, pot_dir)
-                print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}")
-            except Exception as e:
-                print(f"UCSB case {i} failed: {e}")
+            for xc_scale in XC_SCALES:
+                pot_dir = batch_dir / f"case_{idx:02d}"
+                pot_dir.mkdir(parents=True, exist_ok=True)
+                try:
+                    run_single(V_NS, V_EW, V_Bi, xc_scale, pot_dir)
+                    print(f"Finished UCSB case {idx}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}, XC={xc_scale:.3f}")
+                except Exception as e:
+                    print(f"UCSB case {idx} failed: {e}")
+                idx += 1
     else:
         futures = []
         with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            for i, entry in enumerate(V_NS_EW_PAIRS):
+            idx = 0
+            for entry in V_NS_EW_PAIRS:
                 if len(entry) != 3:
                     raise ValueError("Each entry in V_NS_EW_PAIRS must be a 3-tuple: (V_NS, V_EW, V_B)")
                 V_NS, V_EW, V_Bi = entry
-                pot_dir = batch_dir / f"case_{i:02d}"
-                pot_dir.mkdir(parents=True, exist_ok=True)
-                futures.append((i, V_NS, V_EW, V_Bi, executor.submit(run_single, V_NS, V_EW, V_Bi, pot_dir)))
-            for i, V_NS, V_EW, V_Bi, fut in futures:
+                for xc_scale in XC_SCALES:
+                    pot_dir = batch_dir / f"case_{idx:02d}"
+                    pot_dir.mkdir(parents=True, exist_ok=True)
+                    futures.append((idx, V_NS, V_EW, V_Bi, xc_scale, executor.submit(run_single, V_NS, V_EW, V_Bi, xc_scale, pot_dir)))
+                    idx += 1
+            for i, V_NS, V_EW, V_Bi, xc_scale, fut in futures:
                 try:
                     fut.result()
-                    print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}")
+                    print(f"Finished UCSB case {i}: V_NS={V_NS:+.2f}, V_EW={V_EW:+.2f}, V_B={V_Bi:+.3f}, XC={xc_scale:.3f}")
                 except Exception as e:
                     print(f"UCSB case {i} failed: {e}")
 
