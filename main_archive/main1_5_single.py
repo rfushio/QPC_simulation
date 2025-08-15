@@ -71,7 +71,7 @@ def _run_single_simulation(idx: int,
         lbfgs_maxfun=LBFGS_MAXFUN,
         potential_scale=POTENTIAL_SCALE,
         potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_digitized.csv",
+        exc_file="data/0-data/Exc_data_new.csv",
         solver_type=SolverType,
         coarse_accept_limit=COARSE_ACCEPT_LIMIT,
     )
