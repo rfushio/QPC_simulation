@@ -76,6 +76,11 @@ def run_single_file(potential_file: str, xc_scale: float, out_dir: Path) -> None
         solver_type="solver4",
         exc_scale=float(xc_scale),
         use_matryoshka=MATRYOSHKA,
+        niter=BASINHOPPING_NITER,
+        step_size=BASINHOPPING_STEP_SIZE,
+        lbfgs_maxiter=LBFGS_MAXITER,
+        lbfgs_maxfun=LBFGS_MAXFUN,
+        coarse_accept_limit=COARSE_ACCEPT_LIMIT,
     )
 
     solver = ThomasFermiSolver(cfg)
@@ -117,6 +122,11 @@ def run_single_data(x_nm: np.ndarray, y_nm: np.ndarray, V_vals: np.ndarray, xc_s
         solver_type="solver4",
         exc_scale=float(xc_scale),
         use_matryoshka=MATRYOSHKA,
+        niter=BASINHOPPING_NITER,
+        step_size=BASINHOPPING_STEP_SIZE,
+        lbfgs_maxiter=LBFGS_MAXITER,
+        lbfgs_maxfun=LBFGS_MAXFUN,
+        coarse_accept_limit=COARSE_ACCEPT_LIMIT,
     )
 
     solver = ThomasFermiSolver(cfg)
