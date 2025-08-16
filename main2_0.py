@@ -23,7 +23,7 @@ GRID_N: int = 64
 
 # Optimisation parameters
 BASINHOPPING_NITER: int = 100
-BASINHOPPING_STEP_SIZE: float = 0.1
+BASINHOPPING_STEP_SIZE: float = 0.5
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
 

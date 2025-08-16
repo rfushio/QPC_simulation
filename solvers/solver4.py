@@ -87,6 +87,7 @@ class ThomasFermiSolver:
         self._prepare_kernels()
         self._prepare_exc_table()
         self._init_density()
+        setattr(self, "_bh_step", 0)
 
     # ------------------------------------------------------------------
     # External potential loading and grid preparation
@@ -217,10 +218,18 @@ class ThomasFermiSolver:
         if not getattr(self.cfg, "use_matryoshka", False):
             start_time = float(__import__("time").time())
             self.energy_history: list[float] = [self.energy(self.nu0.copy())]
+            try:
+                _total_iter = int(self.cfg.niter)
+            except Exception:
+                _total_iter = 0
+            print(f"[solver4] start single-stage niter={_total_iter}")
 
             def _bh_callback(x, f, accept):
+                step_i = getattr(self, "_bh_step", 0) + 1
+                setattr(self, "_bh_step", step_i)
                 if accept:
                     self.energy_history.append(float(f))
+                print(f"[solver4] iter={step_i}/{_total_iter} accept={bool(accept)} energy={float(f):.6f} meV")
 
             result = basinhopping(
                 self.energy,
@@ -242,6 +251,7 @@ class ThomasFermiSolver:
 
             end_time = float(__import__("time").time())
             self.execution_time = end_time - start_time
+            print("[solver4] finish single-stage")
             self.nu_opt = result.x.reshape((self.Nx, self.Ny))
             self.nu_smoothed = self.gaussian_convolve(self.nu_opt)
             self.optimisation_result = result
@@ -304,16 +314,28 @@ class ThomasFermiSolver:
 
             def _bh_callback(x, f, accept):
                 nonlocal accepted_count
+                # track per-stage step
+                step_i = getattr(stage, "_bh_step", 0) + 1
+                setattr(stage, "_bh_step", step_i)
                 if accept:
                     accepted_count += 1
                     _accepted_x.append(x.copy())
                     stage.energy_history.append(float(f))
-                    if (
-                        res < target_N
-                        and getattr(stage.cfg, "coarse_accept_limit", 1) > 0
-                        and accepted_count >= getattr(stage.cfg, "coarse_accept_limit", 1)
-                    ):
-                        raise _EarlyStop
+                # progress print
+                try:
+                    _stage_total = int(stage.cfg.niter)
+                except Exception:
+                    _stage_total = 0
+                print(
+                    f"[solver4] stage N={res} iter={step_i}/{_stage_total} accept={bool(accept)} energy={float(f):.6f} meV accepted={accepted_count}"
+                )
+                if (
+                    res < target_N
+                    and getattr(stage.cfg, "coarse_accept_limit", 1) > 0
+                    and accepted_count >= getattr(stage.cfg, "coarse_accept_limit", 1)
+                ):
+                    print(f"[solver4] stage N={res} early-stop after {accepted_count} accepts")
+                    raise _EarlyStop
 
             try:
                 result = basinhopping(
