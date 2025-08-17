@@ -19,10 +19,10 @@ import re
 WINDOWS: bool = False  # select output root (Windows vs default)
 
 # Grid resolution (square)
-GRID_N: int = 64
+GRID_N: int = 32
 
 # Optimisation parameters
-BASINHOPPING_NITER: int = 100
+BASINHOPPING_NITER: int = 3
 BASINHOPPING_STEP_SIZE: float = 0.5
 LBFGS_MAXITER: int = 1000
 LBFGS_MAXFUN: int = 2_000_000
@@ -31,15 +31,15 @@ LBFGS_MAXFUN: int = 2_000_000
 B_FIELD_T: float = 13.0
 
 # Material / geometry
-D_T: float = 30.0
-D_B: float = 30.0
+D_T: float = 49.0
+D_B: float = 27.0
 
 # Potential scaling
 POTENTIAL_SCALE: float = 1.0
 POTENTIAL_OFFSET: float = 0.0
 
 # Exchange–correlation scaling – allow multiple, run combinations
-XC_SCALES: list[float] = [1.8,1.51]
+XC_SCALES: list[float] = [1.8]
 
 # Progressive refinement
 MATRYOSHKA: bool = True
@@ -59,7 +59,7 @@ POTENTIAL_FILES: list[str] = []
 # Mode: combined — One combined file with many columns and header mapping
 COMBINED_FILE: str = "data/1-data/James2.txt"  # x_nm, y_nm, columns of Phi
 # Specify desired pairs like main1_5: list of (V_QPC, V_SG)
-DESIRED_PAIRS: list[tuple[float, float]] = [(-1.90,-1.50),(-1.60,-1.50),(-1.30,-1.50),(-1.00,-1.50),(-0.70,-1.50)]
+DESIRED_PAIRS: list[tuple[float, float]] = [(-1.90,-0.45),(-1.60,-0.45),(-1.30,-0.45),(-1.00,-0.45),(-0.70,-0.45),(-0.40,-0.45),(-0.10,-0.45)]
 
 
 def run_single_file(potential_file: str, xc_scale: float, out_dir: Path) -> None:
@@ -72,7 +72,7 @@ def run_single_file(potential_file: str, xc_scale: float, out_dir: Path) -> None
         potential_file=potential_file,
         potential_scale=POTENTIAL_SCALE,
         potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_new.csv",
+        exc_file="data/0-data/Exc_data_new2.csv",
         solver_type="solver4",
         exc_scale=float(xc_scale),
         use_matryoshka=MATRYOSHKA,
@@ -118,7 +118,7 @@ def run_single_data(x_nm: np.ndarray, y_nm: np.ndarray, V_vals: np.ndarray, xc_s
         potential_file=str(tmp_pot_file),
         potential_scale=POTENTIAL_SCALE,
         potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_new.csv",
+        exc_file="data/0-data/Exc_data_new2.csv",
         solver_type="solver4",
         exc_scale=float(xc_scale),
         use_matryoshka=MATRYOSHKA,

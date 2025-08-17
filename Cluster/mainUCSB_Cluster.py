@@ -44,35 +44,27 @@ Y_MIN_NM: float = -HALF_SPAN_M * 1e9
 Y_MAX_NM: float = +HALF_SPAN_M * 1e9
 
 # -----------------------------------------------------------------------------
-# HELPER FUNCTIONS (Copied from mainUCSB.py)
+# HELPER FUNCTIONS (Updated to dot version if needed)
 # -----------------------------------------------------------------------------
 
-def build_vt_grid(N: int, x_min_nm: float, x_max_nm: float, y_min_nm: float, y_max_nm: float, bar_width_nm: float, V_NS: float, V_EW: float) -> np.ndarray:
+def build_vt_grid(N: int, x_min_nm: float, x_max_nm: float, y_min_nm: float, y_max_nm: float, dot_radius_nm: float, V_in: float, V_out: float) -> np.ndarray:
     x_nm = np.linspace(x_min_nm, x_max_nm, N)
     y_nm = np.linspace(y_min_nm, y_max_nm, N)
     X_nm, Y_nm = np.meshgrid(x_nm, y_nm, indexing="ij")
-    sqrt2 = np.sqrt(2.0)
-    d1 = np.abs(Y_nm - X_nm) / sqrt2
-    d2 = np.abs(Y_nm + X_nm) / sqrt2
-    half_w = bar_width_nm / 2.0
-    bar_mask = (d1 <= half_w) | (d2 <= half_w)
-    remaining = ~bar_mask
-    ns_region = remaining & (np.abs(Y_nm) > np.abs(X_nm))
-    ew_region = remaining & (np.abs(X_nm) > np.abs(Y_nm))
-    Vt = np.zeros((N, N), dtype=float)
-    Vt[ns_region] = V_NS
-    Vt[ew_region] = V_EW
+    R_nm = np.sqrt(X_nm**2 + Y_nm**2)
+    Vt = np.full((N, N), V_out, dtype=float)
+    Vt[R_nm <= dot_radius_nm] = V_in
     return Vt
 
-def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None:
-    vt_grid = build_vt_grid(GRID_N, X_MIN_NM, X_MAX_NM, Y_MIN_NM, Y_MAX_NM, BAR_WIDTH_NM, V_NS, V_EW)
+def run_single(V_in: float, V_out: float, V_B_case: float, out_dir: Path) -> None:
+    vt_grid = build_vt_grid(GRID_N, X_MIN_NM, X_MAX_NM, Y_MIN_NM, Y_MAX_NM, BAR_WIDTH_NM, V_in, V_out)
 
     # Note: Vt_grid plotting is disabled for cluster jobs to save time/resources
     
     cfg = SimulationConfig(
         Nx=GRID_N, Ny=GRID_N, B=B_FIELD_T, V_B=float(V_B_case),
         dt=D_T*1e-9, db=D_B*1e-9, Vt_grid=vt_grid,
-        v_ns=float(V_NS), v_ew=float(V_EW),
+        v_in=float(V_in), v_out=float(V_out),
         x_min_nm=X_MIN_NM, x_max_nm=X_MAX_NM, y_min_nm=Y_MIN_NM, y_max_nm=Y_MAX_NM,
         niter=BASINHOPPING_NITER, step_size=BASINHOPPING_STEP_SIZE,
         lbfgs_maxiter=LBFGS_MAXITER, lbfgs_maxfun=LBFGS_MAXFUN,
@@ -84,7 +76,7 @@ def run_single(V_NS: float, V_EW: float, V_B_case: float, out_dir: Path) -> None
     solver = ThomasFermiSolver(cfg)
     solver.optimise()
 
-    title_extra = f"V_NS={V_NS:+.3f} V, V_EW={V_EW:+.3f} V, V_B={float(V_B_case):+.3f} V"
+    title_extra = f"V_in={V_in:+.3f} V, V_out={V_out:+.3f} V, V_B={float(V_B_case):+.3f} V"
     solver.plot_results(save_dir=str(out_dir), title_extra=title_extra, show=False)
     solver.save_results(out_dir)
 

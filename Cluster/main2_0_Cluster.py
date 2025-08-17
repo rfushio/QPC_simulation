@@ -105,7 +105,7 @@ def _run_file_task(task: dict, batch_folder: Path, task_id: int) -> None:
         dt=D_T * 1e-9, db=D_B * 1e-9,
         potential_file=potential_file,
         potential_scale=POTENTIAL_SCALE, potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_new.csv", solver_type="solver4",
+        exc_file="data/0-data/Exc_data_new2.csv", solver_type="solver4",
         exc_scale=xc_scale, use_matryoshka=MATRYOSHKA,
         lbfgs_maxiter=LBFGS_MAXITER, lbfgs_maxfun=LBFGS_MAXFUN,
         niter=BASINHOPPING_NITER, step_size=BASINHOPPING_STEP_SIZE,
@@ -173,12 +173,17 @@ def _run_combined_task(task: dict, batch_folder: Path, task_id: int) -> None:
     out_dir = batch_folder / f"case_{task_id:03d}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Write temporary potential file for this case
+    tmp_pot_file = out_dir / "external_potential.txt"
+    arr = np.column_stack([np.asarray(x_nm), np.asarray(y_nm), np.asarray(V_vals)])
+    np.savetxt(tmp_pot_file, arr, fmt="%.9f", header="x_nm y_nm Phi_V", comments="% ")
+
     cfg = SimulationConfig(
         Nx=GRID_N, Ny=GRID_N, B=B_FIELD_T,
         dt=D_T * 1e-9, db=D_B * 1e-9,
-        potential_data=(x_nm, y_nm, V_vals),
+        potential_file=str(tmp_pot_file),
         potential_scale=POTENTIAL_SCALE, potential_offset=POTENTIAL_OFFSET,
-        exc_file="data/0-data/Exc_data_new.csv", solver_type="solver4",
+        exc_file="data/0-data/Exc_data_new2.csv", solver_type="solver4",
         exc_scale=xc_scale, use_matryoshka=MATRYOSHKA,
         lbfgs_maxiter=LBFGS_MAXITER, lbfgs_maxfun=LBFGS_MAXFUN,
         niter=BASINHOPPING_NITER, step_size=BASINHOPPING_STEP_SIZE,

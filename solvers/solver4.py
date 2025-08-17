@@ -39,7 +39,7 @@ class SimulationConfig:
     epsilon_parallel: float = 6.6
 
     # Exchange–correlation
-    exc_file: str = "data/0-data/Exc_data_new.csv"
+    exc_file: str = "data/0-data/Exc_data_new2.csv"
     exc_scale: float = 1.0
 
     # Optimisation
@@ -415,7 +415,7 @@ class ThomasFermiSolver:
         title = "Optimised Filling Factor ν(r)"
         if title_extra:
             title += f"  |  {title_extra}"
-        _plt.title(title)
+        _plt.title(title, fontsize=8)
         _plt.xlabel("x [ℓ_B]")
         _plt.ylabel("y [ℓ_B]")
         _plt.colorbar(label="ν")
@@ -429,7 +429,7 @@ class ThomasFermiSolver:
         title2 = "External Potential Φ(r) [V]"
         if title_extra:
             title2 += f"\n{title_extra}"
-        _plt.title(title2)
+        _plt.title(title2, fontsize=8)
         _plt.xlabel("x [ℓ_B]")
         _plt.ylabel("y [ℓ_B]")
         _plt.colorbar(label="Φ [V]")
@@ -441,7 +441,7 @@ class ThomasFermiSolver:
         if save_path is not None and hasattr(self, "energy_history") and len(self.energy_history) >= 2:
             self._plot_energy_decrease(save_path)
 
-        # Cross-section plot
+        # Cross-section plot (x-direction at y≈0)
         import numpy as _np
         y_index = int(_np.argmin(_np.abs(self.y)))
         x_over_lB = self.x / self.ell_B
@@ -464,7 +464,33 @@ class ThomasFermiSolver:
         fig3.legend(lines, labels, loc="upper right")
         _plt.tight_layout()
         if save_path is not None:
+            # Preserve original filename and also provide explicit x-suffix
             fig3.savefig(save_path / "phi_nu_cross_section.png", dpi=300)
+            fig3.savefig(save_path / "phi_nu_cross_section_x.png", dpi=300)
+
+        # Cross-section plot (y-direction at x≈0)
+        x_index = int(_np.argmin(_np.abs(self.x)))
+        y_over_lB = self.y / self.ell_B
+        phi_ext_meV_y = (self.cfg.e * self.Phi[x_index, :]) * self.J_to_meV
+        nu_line_y = self.nu_smoothed[x_index, :]
+
+        fig4, ax1y = _plt.subplots(figsize=(6.2, 4.5))
+        ln1y = ax1y.plot(y_over_lB, phi_ext_meV_y, color="tab:red", linewidth=2.2, label="Φ_ext [meV]")
+        ax1y.set_xlabel("y [ℓ_B]")
+        ax1y.set_ylabel("Φ_ext [meV]", color="tab:red")
+        ax1y.tick_params(axis="y", labelcolor="tab:red")
+
+        ax2y = ax1y.twinx()
+        ln2y = ax2y.plot(y_over_lB, nu_line_y, color="tab:blue", linewidth=2.0, label="ν")
+        ax2y.set_ylabel("ν", color="tab:blue")
+        ax2y.tick_params(axis="y", labelcolor="tab:blue")
+
+        lines_y = ln1y + ln2y
+        labels_y = [l.get_label() for l in lines_y]
+        fig4.legend(lines_y, labels_y, loc="upper right")
+        _plt.tight_layout()
+        if save_path is not None:
+            fig4.savefig(save_path / "phi_nu_cross_section_y.png", dpi=300)
 
         if show:
             _plt.show()
@@ -472,6 +498,7 @@ class ThomasFermiSolver:
             _plt.close(fig1)
             _plt.close(fig2)
             _plt.close(fig3)
+            _plt.close(fig4)
 
     def save_results(self, output_dir: Union[Path, str] = "results") -> None:
         if not hasattr(self, "nu_smoothed"):
